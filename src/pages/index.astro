@@ -242,6 +242,7 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
         <div class="contact-body">
           <!-- 1. Email — Primary Action (prominent card with icon & mailto) -->
           {hasEmail && (
+            <Fragment set:html="<!--email_off-->" />
             <a
               class="contact-email-card"
               href={`mailto:${contact.email}`}
@@ -265,6 +266,7 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
                 </svg>
               </span>
             </a>
+            <Fragment set:html="<!--/email_off-->" />
           )}
 
           <!-- 2. Zalo & Socials (Secondary Row) -->
