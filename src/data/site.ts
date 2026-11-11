@@ -123,7 +123,7 @@ export const identity: IdentityConfig = {
 export const introduction: IntroductionConfig = {
   headline: 'Giới thiệu',
   lead: 'Phạm Lê Trường Vũ (VUPHM) — Video Editor.',
-  body: 'Biên tập video và sáng tạo nội dung từ năm 2021. Tập trung vào cắt dựng, nhịp điệu và tối ưu video cho các nền tảng số định dạng 16:9 và 9:16.',
+  body: 'Video Editor (Freelancer) hoạt động từ năm 2021. Thực hiện biên tập video ngắn, video thương mại và recap sự kiện.',
 };
 
 export const experience: ExperienceConfig = {
@@ -184,7 +184,7 @@ export const localization: LocalizationConfig = {
   locale: 'vi',
   lang: 'vi',
   siteTitle: 'VUPHM — Video Editor',
-  description: 'Portfolio biên tập video của Phạm Lê Trường Vũ (VUPHM) — Tuyển tập video 16:9 và 9:16.',
+  description: 'Portfolio biên tập video của Phạm Lê Trường Vũ (VUPHM) — Video Editor.',
 };
 
 /**
@@ -239,9 +239,9 @@ export const siteConfig = {
     selectedVideos: {
       eyebrow: 'Tuyển chọn',
       headline: 'Video nổi bật',
-      subline: 'Các tác phẩm hoàn thiện theo định dạng 16:9 và 9:16.',
-      landscapeHeading: 'Video 16:9',
-      portraitHeading: 'Video 9:16',
+      subline: '',
+      landscapeHeading: 'Video ngang',
+      portraitHeading: 'Video dọc',
     },
 
     emptyState: {

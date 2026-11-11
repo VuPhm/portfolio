@@ -196,7 +196,7 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
             <!-- Phần mềm chính: CapCut -->
             <div class="software-card software-primary glass">
               <div class="software-icon-wrap primary-icon">
-                <img src={software.primary.iconSrc} alt={software.primary.name} class="software-img" width="36" height="36" loading="lazy" />
+                <img src={software.primary.iconSrc} alt={software.primary.name} class="software-img" width="44" height="44" loading="lazy" />
               </div>
               <div class="software-meta">
                 <div class="software-name-row">
@@ -212,7 +212,7 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
               {software.secondary.map((tool) => (
                 <div class="software-card software-secondary glass">
                   <div class="software-icon-wrap secondary-icon">
-                    <img src={tool.iconSrc} alt={tool.name} class="software-img" width="28" height="28" loading="lazy" />
+                    <img src={tool.iconSrc} alt={tool.name} class="software-img" width="32" height="32" loading="lazy" />
                   </div>
                   <div class="software-meta">
                     <div class="software-name-row">
@@ -229,109 +229,78 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
     </div>
   </section>
 
-  <!-- Section Liên hệ (Round 03.6: Email, Phone & Zalo) -->
+  <!-- Section Liên hệ (Round 03.7: Compact Professional Contact) -->
   <section class="section contact-section" id="contact" aria-labelledby="contact-title">
-    <div class="wrap">
-      <div class="contact-card glass reveal">
+    <div class="wrap contact-wrap">
+      <div class="contact-box glass reveal">
         <div class="contact-head">
-          <p class="eyebrow">{personality.contact.eyebrow}</p>
-          <h2 class="contact-headline" id="contact-title">{contact.headline}</h2>
+          <p class="eyebrow">{contact.headline}</p>
+          <h2 class="contact-headline" id="contact-title">Trao đổi dự án</h2>
           {contact.subline && <p class="contact-subline">{contact.subline}</p>}
-          <div class="contact-person-meta">
-            <span class="person-name">{identity.fullName}</span>
-            <span class="person-role">({identity.brand} · {identity.role})</span>
-          </div>
         </div>
 
         <div class="contact-body">
-          <div class="contact-channels">
-            <!-- 1. Email -->
-            {hasEmail && (
-              <a
-                class="contact-channel-item glass"
-                href={`mailto:${contact.email}`}
-                data-event="contact_click"
-                data-event-target="contact_email"
-                aria-label={`Gửi email đến ${contact.email}`}
-              >
-                <div class="channel-icon-wrap icon-email">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <rect width="20" height="16" x="2" y="4" rx="2"></rect>
-                    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
-                  </svg>
-                </div>
-                <div class="channel-meta">
-                  <span class="channel-label">Email</span>
-                  <span class="channel-value">{contact.email}</span>
-                </div>
-                <span class="channel-action">Gửi thư ›</span>
-              </a>
-            )}
+          <!-- 1. Email — Primary Action (prominent card with icon & mailto) -->
+          {hasEmail && (
+            <a
+              class="contact-email-card"
+              href={`mailto:${contact.email}`}
+              data-event="contact_click"
+              data-event-target="contact_email"
+              aria-label={`Gửi email đến ${contact.email}`}
+            >
+              <div class="email-icon-box" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="20" height="16" x="2" y="4" rx="2"></rect>
+                  <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+                </svg>
+              </div>
+              <div class="email-meta">
+                <span class="email-label">Email chính</span>
+                <span class="email-value">{contact.email}</span>
+              </div>
+              <span class="email-arrow" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M7 17 17 7M8 7h9v9"></path>
+                </svg>
+              </span>
+            </a>
+          )}
 
-            <!-- 2. Điện thoại -->
-            {contact.phoneE164 && (
-              <a
-                class="contact-channel-item glass"
-                href={`tel:${contact.phoneE164}`}
-                data-event="contact_click"
-                data-event-target="contact_phone"
-                aria-label={`Gọi điện thoại đến ${contact.phoneDisplay}`}
-              >
-                <div class="channel-icon-wrap icon-phone">
-                  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                  </svg>
-                </div>
-                <div class="channel-meta">
-                  <span class="channel-label">Điện thoại</span>
-                  <span class="channel-value">{contact.phoneDisplay}</span>
-                </div>
-                <span class="channel-action">Gọi ngay ›</span>
-              </a>
-            )}
-
-            <!-- 3. Zalo -->
+          <!-- 2. Zalo & Socials (Secondary Row) -->
+          <div class="contact-secondary-row">
             {contact.zaloUrl && (
               <a
-                class="contact-channel-item glass"
+                class="contact-zalo-pill glass"
                 href={contact.zaloUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-event="contact_click"
                 data-event-target="contact_zalo"
-                aria-label="Nhắn tin qua Zalo (mở trong tab mới)"
+                aria-label="Nhắn tin qua Zalo"
               >
-                <div class="channel-icon-wrap icon-zalo">
-                  <img src="/media/zalo.svg" alt="Zalo" width="22" height="22" loading="lazy" />
-                </div>
-                <div class="channel-meta">
-                  <span class="channel-label">Zalo</span>
-                  <span class="channel-value">{contact.phoneDisplay}</span>
-                </div>
-                <span class="channel-action">Nhắn Zalo ›</span>
+                <img src="/media/zalo.svg" alt="" width="18" height="18" loading="lazy" aria-hidden="true" />
+                <span>Nhắn tin qua Zalo</span>
               </a>
             )}
+
+            {realSocials.map((s) => (
+              <a
+                class="contact-social-pill glass"
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-event="contact_click"
+                data-event-target={`social_${s.label.toLowerCase()}`}
+              >
+                <span>{s.label}</span>
+              </a>
+            ))}
           </div>
 
-          <GoogleDriveButton sourceContext="contact" />
-
-          {realSocials.length > 0 && (
-            <ul class="socials" role="list">
-              {realSocials.map((s) => (
-                <li>
-                  <a
-                    href={s.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    data-event="contact_click"
-                    data-event-target={`social_${s.label.toLowerCase()}`}
-                  >
-                    {s.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          )}
+          <div class="contact-drive-row">
+            <GoogleDriveButton sourceContext="contact" />
+          </div>
         </div>
       </div>
     </div>
@@ -502,16 +471,15 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
   .primary-icon {
     width: 44px;
     height: 44px;
-    background: #000;
-    padding: 4px;
-    border: 1px solid var(--hairline);
   }
   .secondary-icon {
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
   }
   .software-img {
     display: block;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
   }
 
@@ -560,155 +528,161 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
     border: 1px solid var(--hairline);
   }
 
-  /* Contact Section */
+  /* Compact Contact Section — Round 03.7 */
   .contact-section {
-    padding-block: clamp(60px, 9vw, 120px) var(--section);
+    padding-block: clamp(60px, 9vw, 110px) var(--section);
   }
-  .contact-card {
-    padding: clamp(28px, 4vw, 56px);
-    border-radius: var(--r-lg);
+  .contact-wrap {
+    max-width: 680px;
+    margin-inline: auto;
+  }
+  .contact-box {
+    padding: clamp(28px, 4.5vw, 44px);
+    border-radius: var(--r-xl);
     display: grid;
-    gap: 36px;
+    gap: 28px;
+    text-align: center;
   }
-  @media (min-width: 960px) {
-    .contact-card {
-      grid-template-columns: 1fr 1.2fr;
-      align-items: start;
-      gap: 56px;
-    }
+  .contact-head {
+    display: grid;
+    gap: 8px;
+    justify-items: center;
   }
-
   .contact-headline {
     font-size: var(--fs-h2);
     font-weight: 600;
-    line-height: 1.08;
+    line-height: 1.1;
     letter-spacing: var(--tracking-snug);
-    margin: 8px 0 12px;
+    margin: 0;
   }
   .contact-subline {
-    font-size: var(--fs-body);
+    font-size: var(--fs-sm);
     color: var(--fg-2);
     line-height: 1.45;
-    max-width: 38ch;
-  }
-  .contact-person-meta {
-    margin-top: 18px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 6px;
-    font-size: var(--fs-sm);
-  }
-  .person-name {
-    font-weight: 600;
-    color: var(--fg);
-  }
-  .person-role {
-    color: var(--fg-3);
+    max-width: 42ch;
+    margin: 0;
   }
 
   .contact-body {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    align-items: stretch;
-  }
-
-  /* Contact Channels */
-  .contact-channels {
     display: grid;
-    gap: 12px;
+    gap: 16px;
     width: 100%;
   }
-  .contact-channel-item {
+
+  /* Primary Email Card */
+  .contact-email-card {
     display: flex;
     align-items: center;
     gap: 16px;
-    padding: 14px 20px;
+    padding: 16px 22px;
     border-radius: var(--r-md);
     text-decoration: none;
-    transition: transform var(--dur-fast) var(--ease-out), background-color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.04) 60%), rgb(28 28 32 / 0.7);
+    border: 1px solid rgb(255 255 255 / 0.2);
+    box-shadow: 0 4px 20px rgb(0 0 0 / 0.25);
+    transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+    text-align: left;
   }
-  .contact-channel-item:hover {
+  .contact-email-card:hover {
     transform: translateY(-2px);
-    border-color: rgb(255 255 255 / 0.24);
-    background: linear-gradient(180deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.04) 55%), rgb(36 36 38 / 0.65);
+    border-color: rgb(255 255 255 / 0.35);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.18), rgb(255 255 255 / 0.06) 60%), rgb(34 34 38 / 0.8);
   }
-  .contact-channel-item:active {
+  .contact-email-card:active {
     transform: scale(0.985);
   }
 
-  .channel-icon-wrap {
-    width: 40px;
-    height: 40px;
+  .email-icon-box {
+    width: 42px;
+    height: 42px;
     border-radius: var(--r-pill);
+    background: rgb(255 255 255 / 0.1);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    border: 1px solid rgb(255 255 255 / 0.16);
   }
-  .icon-email {
-    background: rgb(255 255 255 / 0.08);
-    color: var(--fg);
-    border: 1px solid var(--hairline);
-  }
-  .icon-phone {
-    background: rgb(52 199 89 / 0.15);
-    color: #34c759;
-    border: 1px solid rgb(52 199 89 / 0.25);
-  }
-  .icon-zalo {
-    background: rgb(0 104 255 / 0.15);
-    border: 1px solid rgb(0 104 255 / 0.25);
-  }
-
-  .channel-meta {
+  .email-meta {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
     min-width: 0;
   }
-  .channel-label {
+  .email-label {
     font-size: var(--fs-xs);
     font-weight: 500;
     color: var(--fg-3);
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
   }
-  .channel-value {
-    font-size: var(--fs-body);
+  .email-value {
+    font-size: clamp(1.0625rem, 2.2vw, 1.25rem);
     font-weight: 600;
     color: var(--fg);
     letter-spacing: -0.01em;
-    word-break: break-word;
+    word-break: break-all;
   }
-
-  .channel-action {
-    font-size: var(--fs-sm);
-    color: var(--fg-2);
-    white-space: nowrap;
-    transition: color var(--dur-fast) ease, transform var(--dur-fast) ease;
+  .email-arrow {
+    color: var(--fg-3);
+    display: flex;
+    align-items: center;
+    transition: transform var(--dur-fast) ease, color var(--dur-fast) ease;
   }
-  .contact-channel-item:hover .channel-action {
+  .contact-email-card:hover .email-arrow {
     color: #fff;
-    transform: translateX(2px);
+    transform: translate(2px, -2px);
   }
 
-  .socials {
+  /* Secondary Row: Zalo & Socials */
+  .contact-secondary-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 24px;
-    margin: 8px 0 0;
-    padding: 0;
-    list-style: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  .contact-zalo-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: var(--r-pill);
     font-size: var(--fs-sm);
-    color: var(--fg-3);
-  }
-  .socials a {
-    transition: color var(--dur-fast) ease;
-  }
-  .socials a:hover {
+    font-weight: 500;
     color: var(--fg);
+    text-decoration: none;
+    transition: transform var(--dur-fast) var(--ease-out), border-color var(--dur-fast) ease;
+  }
+  .contact-zalo-pill:hover {
+    transform: translateY(-1px);
+    border-color: rgb(255 255 255 / 0.28);
+  }
+  .contact-zalo-pill:active {
+    transform: scale(0.98);
+  }
+
+  .contact-social-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 10px 18px;
+    border-radius: var(--r-pill);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--fg-2);
+    text-decoration: none;
+    transition: transform var(--dur-fast) var(--ease-out), color var(--dur-fast) ease;
+  }
+  .contact-social-pill:hover {
+    color: var(--fg);
+    transform: translateY(-1px);
+  }
+
+  .contact-drive-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 4px;
   }
 </style>

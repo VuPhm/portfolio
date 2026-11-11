@@ -5,9 +5,9 @@ status: "published"
 demo: false
 featured: true
 order: 2
-tagline: "Tuyển tập video ngắn định dạng 9:16 và 4:5."
+tagline: "Tuyển tập video ngắn cho mạng xã hội."
 year: "2026"
 cover:
   src: "/media/covers/video-ngan-grid.webp"
-  alt: "Video ngắn — Tuyển tập video ngắn định dạng 9:16 và 4:5"
+  alt: "Video ngắn — Tuyển tập video ngắn cho mạng xã hội"
 ---
