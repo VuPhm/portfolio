@@ -3,7 +3,13 @@ title: "LASHE 04"
 status: "published"
 demo: false
 featured: false
-order: 6
+order: 9
+tags:
+  - "video-editing"
+  - "short-form"
+  - "commercial"
+  - "beauty-care"
+  - "vertical-9-16"
 collections:
   - "video-ngan"
 orientation: "portrait"

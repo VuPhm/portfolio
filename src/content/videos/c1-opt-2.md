@@ -2,8 +2,14 @@
 title: "C1 Opt 2"
 status: "published"
 demo: false
-featured: false
-order: 2
+featured: true
+order: 5
+tags:
+  - "video-editing"
+  - "short-form"
+  - "commercial"
+  - "beauty-care"
+  - "vertical-9-16"
 collections:
   - "video-ngan"
 orientation: "portrait"

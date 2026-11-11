@@ -219,6 +219,8 @@ const videosCollection = defineCollection({
       client: z.string().optional(),
       /** One or two sentences, optional. */
       description: z.string().optional(),
+      /** Taxonomy tag identifiers (e.g. ['short-form', 'commercial', 'fmcg']). */
+      tags: z.array(z.string()).default([]),
     })
   ),
 });

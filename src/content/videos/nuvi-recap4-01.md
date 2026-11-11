@@ -3,7 +3,14 @@ title: "NUVI Recap 4 01"
 status: "published"
 demo: false
 featured: false
-order: 10
+order: 13
+tags:
+  - "video-editing"
+  - "short-form"
+  - "recap-event"
+  - "fmcg"
+  - "events-media"
+  - "vertical-9-16"
 collections:
   - "video-ngan"
 orientation: "portrait"

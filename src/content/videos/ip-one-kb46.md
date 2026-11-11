@@ -3,7 +3,13 @@ title: "I.P.ONE KB46"
 status: "published"
 demo: false
 featured: false
-order: 5
+order: 8
+tags:
+  - "video-editing"
+  - "short-form"
+  - "commercial"
+  - "fmcg"
+  - "vertical-9-16"
 collections:
   - "video-ngan"
 orientation: "portrait"

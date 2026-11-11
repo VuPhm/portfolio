@@ -2,8 +2,15 @@
 title: "VEYO — Brief 3"
 status: "published"
 demo: false
-featured: false
+featured: true
 order: 3
+tags:
+  - "video-editing"
+  - "short-form"
+  - "commercial"
+  - "fmcg"
+  - "fnb"
+  - "vertical-9-16"
 collections:
   - "veyo"
 orientation: "portrait"

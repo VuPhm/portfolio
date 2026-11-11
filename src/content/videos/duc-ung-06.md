@@ -3,7 +3,13 @@ title: "Duc Ung 06"
 status: "published"
 demo: false
 featured: false
-order: 9
+order: 12
+tags:
+  - "video-editing"
+  - "short-form"
+  - "social-content"
+  - "recap-event"
+  - "vertical-9-16"
 collections:
   - "video-ngan"
 orientation: "portrait"

@@ -2,8 +2,14 @@
 title: "DongTayBBS KB4"
 status: "published"
 demo: false
-featured: false
-order: 3
+featured: true
+order: 6
+tags:
+  - "video-editing"
+  - "short-form"
+  - "social-content"
+  - "events-media"
+  - "vertical-9-16"
 collections:
   - "video-ngan"
 orientation: "portrait"

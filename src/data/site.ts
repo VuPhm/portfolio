@@ -1,4 +1,5 @@
 import type { ScrollStoryConfig } from '../lib/scroll-story';
+import { FEATURED_FIELDS } from './taxonomy';
 
 export interface SocialLink {
   label: string;
@@ -12,20 +13,15 @@ export interface StatItem {
   note?: string;
 }
 
-export interface SkillCategory {
-  id: string;
-  name: string;
-  label: string;
-  description?: string;
-}
-
 export interface IdentityConfig {
   name: string;
+  fullName: string;
   displayName: string;
   role: string;
   title: string;
   brand: string;
-  location?: string;
+  location: string;
+  yearOfBirth?: number;
 }
 
 export interface IntroductionConfig {
@@ -34,19 +30,43 @@ export interface IntroductionConfig {
   body: string;
 }
 
+export interface FieldItem {
+  id: string;
+  labelVi: string;
+  keywordEn?: string;
+}
+
+export interface FieldGroup {
+  label: string;
+  items: FieldItem[];
+}
+
 export interface ExperienceConfig {
   headline: string;
+  contentTypes: FieldGroup;
+  industries: FieldGroup;
   fields: string[];
 }
 
-export interface SkillsConfig {
+export interface SoftwareTool {
+  name: string;
+  shortName: string;
+  role: 'primary' | 'secondary';
+  badge: string;
+  iconSrc: string;
+}
+
+export interface SoftwareConfig {
   headline: string;
-  categories: SkillCategory[];
-  tools: string[];
+  primary: SoftwareTool;
+  secondary: SoftwareTool[];
 }
 
 export interface ContactDataConfig {
   email: string;
+  phoneDisplay: string;
+  phoneE164: string;
+  zaloUrl: string;
   headline: string;
   subline: string;
   primaryCtaLabel: string;
@@ -86,52 +106,72 @@ const envDemoPreview = Boolean(
 );
 
 /* ------------------------------------------------------------------ */
-/* Structured personal identity groups (Round 03.5)                   */
+/* Structured personal identity groups (Round 03.6 - Verified Source) */
 /* ------------------------------------------------------------------ */
 
 export const identity: IdentityConfig = {
   name: 'VUPHM',
-  displayName: 'VUPHM',
+  fullName: 'Phạm Lê Trường Vũ',
+  displayName: 'Phạm Lê Trường Vũ',
   role: 'Video Editor',
   title: 'Video Editor',
   brand: 'VUPHM',
+  location: 'TP. Thủ Đức, TP. Hồ Chí Minh',
+  yearOfBirth: 2002,
 };
 
 export const introduction: IntroductionConfig = {
   headline: 'Giới thiệu',
-  lead: 'VUPHM — Video Editor.',
-  body: 'Biên tập video, chỉnh màu và hoàn thiện âm thanh cho định dạng 16:9 và 9:16.',
+  lead: 'Phạm Lê Trường Vũ (VUPHM) — Video Editor.',
+  body: 'Biên tập video và sáng tạo nội dung từ năm 2021. Tập trung vào cắt dựng, nhịp điệu và tối ưu video cho các nền tảng số định dạng 16:9 và 9:16.',
 };
 
 export const experience: ExperienceConfig = {
-  headline: 'Lĩnh vực thực hiện',
+  headline: FEATURED_FIELDS.headline,
+  contentTypes: FEATURED_FIELDS.contentTypes,
+  industries: FEATURED_FIELDS.industries,
   fields: [
-    'Video ngắn 9:16 (Shorts / Reels / TikTok)',
-    'Video thương mại & quảng bá',
-    'Recap & sự kiện',
+    ...FEATURED_FIELDS.contentTypes.items.map((i) => i.labelVi),
+    ...FEATURED_FIELDS.industries.items.map((i) => i.labelVi),
   ],
 };
 
-export const skills: SkillsConfig = {
-  headline: 'Kỹ năng chuyên môn',
-  categories: [
-    { id: 'editing', name: 'Video Editing', label: 'Biên tập & cắt dựng' },
-    { id: 'color', name: 'Color Grading', label: 'Chỉnh màu' },
-    { id: 'sound', name: 'Sound Post', label: 'Hậu kỳ âm thanh' },
+export const software: SoftwareConfig = {
+  headline: 'Phần mềm sử dụng',
+  primary: {
+    name: 'CapCut',
+    shortName: 'CapCut',
+    role: 'primary',
+    badge: 'Chính',
+    iconSrc: '/media/capcut.svg',
+  },
+  secondary: [
+    {
+      name: 'Adobe Premiere Pro',
+      shortName: 'Pr',
+      role: 'secondary',
+      badge: 'Bổ trợ',
+      iconSrc: '/media/premiere.svg',
+    },
+    {
+      name: 'Adobe Photoshop',
+      shortName: 'Ps',
+      role: 'secondary',
+      badge: 'Bổ trợ',
+      iconSrc: '/media/photoshop.svg',
+    },
   ],
-  /**
-   * Software & Tools Integrity Policy (Round 03.5 / Session 03):
-   * Link Google Sites (/edit) yêu cầu đăng nhập tài khoản riêng tư (302 Redirect).
-   * Không tự suy đoán hoặc gán Premiere Pro, After Effects, DaVinci Resolve hay Photoshop khi chưa xác thực từ tài liệu công khai.
-   * Danh sách tools được giữ rỗng để tự động ẩn khỏi giao diện sản xuất cho đến khi có dữ liệu nguồn đối chiếu chính thức.
-   */
-  tools: [],
 };
 
-export const socialLinks: SocialLink[] = [];
+export const socialLinks: SocialLink[] = [
+  { label: 'Facebook', url: 'https://facebook.com/vuphm' },
+];
 
 export const contactData: ContactDataConfig = {
   email: 'contact@vuphm.io.vn',
+  phoneDisplay: '0328 785 002',
+  phoneE164: '+84328785002',
+  zaloUrl: 'https://zalo.me/0328785002',
   headline: 'Liên hệ',
   subline: 'Trao đổi về dự án hoặc công việc biên tập video.',
   primaryCtaLabel: 'Gửi email',
@@ -144,29 +184,29 @@ export const localization: LocalizationConfig = {
   locale: 'vi',
   lang: 'vi',
   siteTitle: 'VUPHM — Video Editor',
-  description: 'Portfolio biên tập video của VUPHM — Loạt video, kênh và thương hiệu.',
+  description: 'Portfolio biên tập video của Phạm Lê Trường Vũ (VUPHM) — Tuyển tập video 16:9 và 9:16.',
 };
 
 /**
- * Personality & content tokens — Round 03.5 (Personal Identity & Portfolio Content Integration)
+ * Personality & content tokens — Round 03.6
  *
- * Tên hiển thị: VUPHM
+ * Tên hiển thị: VUPHM (Brand) / Phạm Lê Trường Vũ (Họ tên đầy đủ đã xác minh)
  * Chức danh: Video Editor
  * Email: contact@vuphm.io.vn
+ * Hotline: 0328 785 002
+ * Zalo: https://zalo.me/0328785002
  *
- * Nguyên tắc biên tập:
- * - Thông tin trực tiếp, ngắn gọn, chuyên nghiệp.
- * - Không slogan ("Every frame. With intent." đã bị loại bỏ), không triết lý.
- * - Không tự nhận thành tích, đối tác, số liệu khi chưa xác minh.
- * - Toàn bộ số liệu thống kê tắt theo quy tắc: Chưa có dữ liệu xác thực thì không đề cập.
- * - Không hiển thị placeholder, link rác hay tiến độ phần trăm kỹ năng.
+ * Phần mềm đã xác nhận:
+ * - Phần mềm chính: CapCut
+ * - Phần mềm bổ trợ: Adobe Premiere Pro (Pr), Adobe Photoshop (Ps)
  */
 export const siteConfig = {
   name: identity.name,
+  fullName: identity.fullName,
   role: identity.role,
   siteTitle: localization.siteTitle,
   description: localization.description,
-  url: 'https://vuphm.io.vn',
+  url: 'https://creative.vuphm.io.vn',
 
   /** Production integrity mode (`demoPreview: false` by default). */
   demoPreview: envDemoPreview,
@@ -174,8 +214,8 @@ export const siteConfig = {
   identity,
   introduction,
   experience,
-  skills,
-  tools: skills.tools,
+  software,
+  tools: [software.primary.name, ...software.secondary.map((s) => s.name)],
   socialLinks,
   contact: contactData,
   localization,
@@ -225,10 +265,6 @@ export const siteConfig = {
     },
 
     statistics: {
-      /**
-       * Quy tắc Round 03.3/03.5: Chưa có dữ liệu xác thực thì không đề cập.
-       * Tắt toàn bộ thống kê (số video, dự án, khách hàng, kinh nghiệm, thành tích).
-       */
       enabled: false,
       minItems: 2,
       autoFromContent: false,
