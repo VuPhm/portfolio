@@ -1,0 +1,110 @@
+---
+import type { VideoItem } from '../lib/content';
+import { getCollectionTitles } from '../lib/content';
+import { resolvePreviewUrl } from '../lib/media';
+import { playerPayload } from '../lib/player';
+
+interface Props {
+  video: VideoItem;
+  /** Lightbox sequence this card belongs to (prev / next browse within the group). */
+  group?: string;
+  /** Load eagerly (above-the-fold only). */
+  eager?: boolean;
+  /** Shared-element page transition into the video page. */
+  transition?: boolean;
+}
+
+const { video, group = 'default', eager = false, transition = true } = Astro.props;
+const d = video.data;
+const payload = playerPayload(video, await getCollectionTitles());
+const previewUrl = resolvePreviewUrl(d);
+const isRatio45 = d.aspectRatio === '4:5';
+const isPortrait = d.orientation === 'portrait';
+const [w, h] = isRatio45 ? [1080, 1350] : isPortrait ? [900, 1600] : [1600, 900];
+---
+
+<a
+  class="video-card lift"
+  href={payload.href}
+  data-player={JSON.stringify(payload)}
+  data-player-group={group}
+  data-preview={previewUrl}
+  data-orientation={d.orientation}
+  data-aspect-ratio={d.aspectRatio}
+  data-event="open_video"
+  data-event-target={video.id}
+  data-event-label={d.title}
+>
+  <div
+    class:list={['media', isRatio45 ? 'ratio-4-5' : isPortrait ? 'portrait' : 'landscape']}
+    style={transition ? `view-transition-name: video-${video.id}` : undefined}
+  >
+    <img
+      src={d.poster.src}
+      alt={d.poster.alt || d.title}
+      width={w}
+      height={h}
+      loading={eager ? undefined : 'lazy'}
+      decoding="async"
+    />
+  </div>
+  <div class="caption">
+    <span class="title">{d.title}</span>
+    {d.duration && <span class="duration">{d.duration}</span>}
+  </div>
+</a>
+
+<style>
+  .video-card {
+    display: block;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .media {
+    --r: var(--r-md);
+  }
+  .media.landscape {
+    aspect-ratio: 16 / 9;
+  }
+  .media.portrait {
+    aspect-ratio: 9 / 16;
+    --r: var(--r-sm);
+  }
+  .media.ratio-4-5 {
+    aspect-ratio: 4 / 5;
+    --r: var(--r-sm);
+  }
+  .caption {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 4px 0;
+  }
+  .title {
+    font-size: var(--fs-body);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  .duration {
+    flex: none;
+    font-size: var(--fs-sm);
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .media.portrait + .caption .title {
+    font-size: 0.9375rem;
+  }
+  @media (max-width: 600px) {
+    .media.portrait + .caption .duration {
+      display: none;
+    }
+  }
+  .video-card:active .media {
+    transform: scale(0.985);
+    transition: transform 0.15s var(--ease-out);
+  }
+</style>

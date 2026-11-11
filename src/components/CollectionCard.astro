@@ -1,0 +1,101 @@
+---
+import { KIND_LABEL, countLabel, resolveCollectionTagline, type CollectionSummary } from '../lib/content';
+import { siteConfig } from '../data/site';
+
+interface Props {
+  summary: CollectionSummary;
+  /** `wide` spans the full row with a cinematic crop. */
+  size?: 'wide' | 'default';
+  eager?: boolean;
+}
+
+const { summary, size = 'default', eager = false } = Astro.props;
+const { entry, count } = summary;
+const d = entry.data;
+const tagline = resolveCollectionTagline(entry);
+const showTagline = Boolean(
+  tagline && (size === 'wide' || siteConfig.personality.collections.showTaglineOnStandardCards)
+);
+---
+
+<a
+  class:list={['collection-card', 'lift', size]}
+  href={`/collections/${entry.id}`}
+  data-kind={d.kind}
+  data-event="view_collection"
+  data-event-target={entry.id}
+  data-event-label={d.title}
+>
+  <div class="media" style={`view-transition-name: collection-${entry.id}`}>
+    <img
+      src={d.cover.src}
+      alt={d.cover.alt || d.title}
+      width="1600"
+      height="1000"
+      loading={eager ? undefined : 'lazy'}
+      decoding="async"
+    />
+    <div class="scrim" aria-hidden="true"></div>
+    <div class="label">
+      <span class="eyebrow">{KIND_LABEL[d.kind].one} · {countLabel(count)}</span>
+      <h3 class="title">{d.title}</h3>
+      {showTagline && <p class="tagline">{tagline}</p>}
+    </div>
+  </div>
+</a>
+
+<style>
+  .collection-card {
+    display: block;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .media {
+    --r: var(--r-lg);
+    aspect-ratio: 4 / 3;
+  }
+  @media (min-width: 734px) {
+    .wide .media {
+      aspect-ratio: 21 / 9;
+      --r: var(--r-xl);
+    }
+  }
+  .scrim {
+    position: absolute;
+    inset: 40% 0 0 0;
+    background: linear-gradient(to bottom, rgb(0 0 0 / 0), rgb(0 0 0 / 0.68));
+    z-index: 1;
+  }
+  .label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    display: grid;
+    gap: 4px;
+    padding: clamp(20px, 2.6vw, 38px);
+  }
+  .eyebrow {
+    color: rgb(255 255 255 / 0.74);
+  }
+  .title {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: var(--tracking-snug);
+  }
+  .wide .title {
+    font-size: clamp(1.75rem, 3.4vw, 3rem);
+  }
+  .tagline {
+    margin-top: 2px;
+    font-size: var(--fs-lead);
+    color: rgb(245 245 247 / 0.78);
+    letter-spacing: -0.012em;
+    max-width: 42ch;
+  }
+  .collection-card:active .media {
+    transform: scale(0.99);
+    transition: transform 0.15s var(--ease-out);
+  }
+</style>

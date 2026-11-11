@@ -1,0 +1,111 @@
+---
+import { siteConfig } from '../data/site';
+
+interface Props {
+  currentPath?: string;
+}
+
+const { currentPath = Astro.url.pathname } = Astro.props;
+
+const links = [
+  { href: '/works', label: 'Tác phẩm', active: currentPath.startsWith('/works') || currentPath.startsWith('/collections') || currentPath.startsWith('/videos') },
+  { href: '/#about', label: 'Giới thiệu', active: false },
+  { href: '/#contact', label: 'Liên hệ', active: false },
+];
+---
+
+<header class="nav-shell">
+  <nav class="nav glass" aria-label="Điều hướng chính">
+    <a href="/" class="brand" aria-current={currentPath === '/' ? 'page' : undefined}>
+      {siteConfig.name}
+    </a>
+    <ul>
+      {
+        links.map((link) => (
+          <li>
+            <a
+              href={link.href}
+              aria-current={link.active ? 'page' : undefined}
+              data-event={link.href === '/#contact' ? 'contact_click' : undefined}
+              data-event-target={link.href === '/#contact' ? 'nav' : undefined}
+            >
+              {link.label}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </nav>
+</header>
+
+<style>
+  .nav-shell {
+    position: fixed;
+    inset: 0 0 auto 0;
+    z-index: 50;
+    display: flex;
+    justify-content: center;
+    padding: max(12px, env(safe-area-inset-top)) var(--gutter) 0;
+    pointer-events: none;
+    view-transition-name: site-nav;
+  }
+
+  .nav {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(12px, 3vw, 40px);
+    width: min(100%, 560px);
+    height: var(--nav-h);
+    padding: 0 8px 0 20px;
+    border-radius: var(--r-pill);
+  }
+
+  .brand {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    white-space: nowrap;
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  ul a {
+    display: inline-flex;
+    align-items: center;
+    height: 38px;
+    padding: 0 14px;
+    border-radius: var(--r-pill);
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+    transition:
+      color var(--dur-fast) ease,
+      background-color var(--dur-fast) ease;
+  }
+
+  ul a:hover {
+    color: var(--fg);
+  }
+
+  ul a[aria-current='page'] {
+    color: var(--fg);
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  @media (max-width: 400px) {
+    .nav {
+      padding-left: 16px;
+    }
+    ul a {
+      padding: 0 10px;
+    }
+  }
+</style>

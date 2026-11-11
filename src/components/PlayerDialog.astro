@@ -1,0 +1,482 @@
+---
+/**
+ * Lightbox player — one <dialog> per page, opened by any element with `data-player`.
+ * Media is created only when opened and destroyed on close, so galleries stay light.
+ * Without JS the cards are plain links to `/videos/[slug]`.
+ */
+---
+
+<dialog class="player" data-player-dialog aria-label="Trình phát video">
+  <div class="stage" data-stage>
+    <div class="panel" data-panel>
+      <div class="frame" data-frame></div>
+      <div class="info">
+        <div class="text">
+          <div class="title-line">
+            <a class="title" data-title href="#"></a>
+            <span class="counter" data-counter hidden></span>
+          </div>
+          <p class="meta" data-meta></p>
+        </div>
+        <a class="glass glass-btn external" data-external hidden target="_blank" rel="noopener noreferrer">
+          <span data-external-label>Xem</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"></path></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <button class="glass glass-btn icon ctl close" type="button" data-close aria-label="Đóng">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+  </button>
+  <button class="glass glass-btn icon ctl prev" type="button" data-prev aria-label="Video trước">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg>
+  </button>
+  <button class="glass glass-btn icon ctl next" type="button" data-next aria-label="Video sau">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+  </button>
+</dialog>
+
+<style>
+  .player {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    overflow: hidden;
+    overscroll-behavior: contain;
+  }
+  .player::backdrop {
+    background: rgb(0 0 0 / 0.86);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .player::backdrop {
+      background: rgb(0 0 0 / 0.96);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  .stage {
+    --chrome: 168px;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    padding: calc(max(12px, env(safe-area-inset-top)) + 64px) var(--gutter) max(24px, env(safe-area-inset-bottom));
+  }
+  .panel {
+    --ratio: 1.7778;
+    width: min(100%, 1400px, calc((100dvh - var(--chrome)) * var(--ratio)));
+  }
+  .panel[data-orientation='portrait'] {
+    --ratio: 0.5625;
+  }
+  .panel[data-aspect-ratio='4:5'] {
+    --ratio: 0.8;
+  }
+
+  .frame {
+    position: relative;
+    aspect-ratio: var(--ratio);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    background: #000;
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.5);
+  }
+  .frame :global(img),
+  .frame :global(video),
+  .frame :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+  }
+  .frame :global(video) {
+    object-fit: contain;
+    background: #000;
+  }
+
+  .info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 4px 0;
+  }
+  .text {
+    min-width: 0;
+  }
+  .title-line {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    min-width: 0;
+  }
+  .title {
+    display: block;
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    letter-spacing: var(--tracking-snug);
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .title:hover {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+  }
+  .counter {
+    flex: none;
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .meta {
+    margin-top: 2px;
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+  }
+  .external {
+    flex: none;
+  }
+
+  .ctl {
+    position: fixed;
+    z-index: 2;
+  }
+  .close {
+    top: max(12px, env(safe-area-inset-top));
+    right: var(--gutter);
+    margin-top: 4px;
+  }
+  .prev,
+  .next {
+    top: 50%;
+    translate: 0 -50%;
+  }
+  .prev {
+    left: max(12px, calc(var(--gutter) / 2));
+  }
+  .next {
+    right: max(12px, calc(var(--gutter) / 2));
+  }
+  .ctl[hidden],
+  .counter[hidden] {
+    display: none;
+  }
+
+  @media (max-width: 733px) {
+    .stage {
+      --chrome: 250px;
+      align-items: center;
+    }
+    .prev,
+    .next {
+      top: auto;
+      translate: none;
+      bottom: max(16px, env(safe-area-inset-bottom));
+    }
+    .prev {
+      left: calc(50% - 52px);
+    }
+    .next {
+      right: calc(50% - 52px);
+    }
+    .info {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .player[open] .panel {
+      animation: panel-in var(--dur) var(--ease-sheet) both;
+    }
+    .player[open]::backdrop {
+      animation: fade-in 0.3s ease both;
+    }
+    .player[open] .ctl {
+      animation: fade-in 0.4s ease both;
+    }
+    .player.closing .panel {
+      animation: panel-out 0.2s ease both;
+    }
+    .player.closing::backdrop,
+    .player.closing .ctl {
+      animation: fade-out 0.2s ease both;
+    }
+    .panel.swap {
+      animation: swap-in 0.35s var(--ease-out) both;
+    }
+  }
+  @keyframes panel-in {
+    from {
+      opacity: 0;
+      transform: translateY(16px) scale(0.96);
+    }
+  }
+  @keyframes panel-out {
+    to {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+  }
+  @keyframes swap-in {
+    from {
+      opacity: 0.2;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  import { hostLabel } from '../lib/media';
+  import type { PlayerPayload } from '../lib/player';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-player-dialog]');
+
+  if (dialog) {
+    const q = <T extends HTMLElement>(sel: string) => dialog.querySelector<T>(sel)!;
+    const stage = q('[data-stage]');
+    const panel = q('[data-panel]');
+    const frame = q('[data-frame]');
+    const title = q<HTMLAnchorElement>('[data-title]');
+    const counter = q('[data-counter]');
+    const meta = q('[data-meta]');
+    const external = q<HTMLAnchorElement>('[data-external]');
+    const externalLabel = q('[data-external-label]');
+    const prevBtn = q<HTMLButtonElement>('[data-prev]');
+    const nextBtn = q<HTMLButtonElement>('[data-next]');
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    let list: HTMLElement[] = [];
+    let index = 0;
+    let pushed = false;
+    let pageTitle = document.title;
+
+    /**
+     * Include all videos in the active group that are not excluded by a category/orientation filter.
+     * Videos folded behind "Show more" (`data-more-hidden="true"`) remain navigable in the lightbox.
+     */
+    const isBrowsable = (el: HTMLElement) =>
+      !el.closest('[hidden]') && !el.closest('[data-filter-hidden="true"]');
+
+    function build(p: PlayerPayload) {
+      frame.replaceChildren();
+      external.hidden = true;
+      const s = p.source;
+      const [w, h] = p.aspectRatio === '4:5' ? [1080, 1350] : p.orientation === 'portrait' ? [900, 1600] : [1600, 900];
+
+      if (s.type === 'file') {
+        const video = document.createElement('video');
+        video.controls = true;
+        video.playsInline = true;
+        video.autoplay = true;
+        video.preload = 'metadata';
+        video.width = w;
+        video.height = h;
+        video.poster = p.poster;
+        if (s.webm) {
+          const webm = document.createElement('source');
+          webm.src = s.webm;
+          webm.type = 'video/webm';
+          video.append(webm);
+        }
+        const mp4 = document.createElement('source');
+        mp4.src = s.src;
+        mp4.type = 'video/mp4';
+        video.append(mp4);
+        if (s.fallbackSrc) {
+          const fallback = document.createElement('source');
+          fallback.src = s.fallbackSrc;
+          fallback.type = 'video/mp4';
+          video.append(fallback);
+        }
+        if (p.captions) {
+          const track = document.createElement('track');
+          track.kind = 'captions';
+          track.src = p.captions;
+          track.srclang = 'en';
+          track.label = 'Captions';
+          video.append(track);
+        }
+        frame.append(video);
+        video.play().catch(() => {});
+        return;
+      }
+
+      if (s.type === 'youtube' || s.type === 'vimeo') {
+        const iframe = document.createElement('iframe');
+        iframe.src = s.embed;
+        iframe.title = p.title;
+        iframe.allow = 'autoplay; fullscreen; picture-in-picture; encrypted-media';
+        iframe.allowFullscreen = true;
+        frame.append(iframe);
+        return;
+      }
+
+      const img = document.createElement('img');
+      img.src = p.poster;
+      img.alt = p.alt;
+      img.width = w;
+      img.height = h;
+      img.decoding = 'async';
+      frame.append(img);
+
+      if (s.type === 'external') {
+        external.href = s.href;
+        externalLabel.textContent = `Xem trên ${hostLabel(s.host)}`;
+        external.hidden = false;
+      }
+    }
+
+    function show(i: number, swap = false) {
+      index = (i + list.length) % list.length;
+      const el = list[index];
+      const p = JSON.parse(el.dataset.player!) as PlayerPayload;
+
+      // If the user navigated to an item folded under "Show more", reveal its batch
+      const parentLi = el.closest<HTMLElement>('li[data-more-hidden="true"]');
+      if (parentLi) {
+        parentLi.removeAttribute('data-more-hidden');
+        parentLi.closest('[data-video-grid]')?.dispatchEvent(new CustomEvent('portfolio:filter-change'));
+      }
+
+      panel.dataset.orientation = p.orientation;
+      if (p.aspectRatio) {
+        panel.dataset.aspectRatio = p.aspectRatio;
+      } else {
+        delete panel.dataset.aspectRatio;
+      }
+      title.textContent = p.title;
+      title.href = p.href;
+      if (list.length > 1) {
+        const pad = list.length >= 10 ? 2 : 1;
+        counter.textContent = `${String(index + 1).padStart(pad, '0')} / ${String(list.length).padStart(pad, '0')}`;
+        counter.hidden = false;
+      } else {
+        counter.hidden = true;
+      }
+      meta.textContent = p.meta;
+      meta.hidden = !p.meta;
+      prevBtn.hidden = nextBtn.hidden = list.length < 2;
+      build(p);
+      document.title = p.title;
+
+      if (swap && !reduceMotion.matches) {
+        panel.classList.remove('swap');
+        void panel.offsetWidth;
+        panel.classList.add('swap');
+      }
+
+      if (pushed) history.replaceState({ player: p.slug }, '', p.href);
+      else {
+        history.pushState({ player: p.slug }, '', p.href);
+        pushed = true;
+      }
+    }
+
+    function open(trigger: HTMLElement) {
+      const group = trigger.dataset.playerGroup ?? 'default';
+      list = [...document.querySelectorAll<HTMLElement>(`[data-player][data-player-group="${group}"]`)].filter(
+        (el) => el === trigger || isBrowsable(el)
+      );
+      pageTitle = document.title;
+      dialog!.classList.remove('closing');
+      if (!dialog!.open) dialog!.showModal();
+      show(list.indexOf(trigger));
+    }
+
+    let closing = false;
+    function close(fromHistory = false) {
+      if (!dialog!.open || closing) return;
+      const finish = () => {
+        closing = false;
+        dialog!.classList.remove('closing');
+        frame.replaceChildren();
+        dialog!.close();
+        document.title = pageTitle;
+      };
+      if (pushed) {
+        pushed = false;
+        if (!fromHistory) history.back();
+      }
+      if (reduceMotion.matches) return finish();
+      closing = true;
+      dialog!.classList.add('closing');
+      setTimeout(finish, 200);
+    }
+
+    document.addEventListener('click', (e) => {
+      const trigger = (e.target as Element).closest<HTMLElement>('[data-player]');
+      if (!trigger || e.defaultPrevented) return;
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      open(trigger);
+    });
+
+    q('[data-close]').addEventListener('click', () => close());
+    prevBtn.addEventListener('click', () => show(index - 1, true));
+    nextBtn.addEventListener('click', () => show(index + 1, true));
+
+    dialog.addEventListener('cancel', (e) => {
+      e.preventDefault();
+      close();
+    });
+    dialog.addEventListener('click', (e) => {
+      if (e.target === dialog || e.target === stage) close();
+    });
+    dialog.addEventListener('keydown', (e) => {
+      if (list.length < 2 || e.target instanceof HTMLVideoElement) return;
+      if (e.key === 'ArrowLeft') show(index - 1, true);
+      if (e.key === 'ArrowRight') show(index + 1, true);
+    });
+
+    // Swipe left / right on touch screens
+    let sx = 0;
+    let sy = 0;
+    panel.addEventListener('touchstart', (e) => {
+      sx = e.touches[0].clientX;
+      sy = e.touches[0].clientY;
+    }, { passive: true });
+    panel.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - sx;
+      const dy = e.changedTouches[0].clientY - sy;
+      if (list.length > 1 && Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        show(index + (dx < 0 ? 1 : -1), true);
+      }
+    }, { passive: true });
+
+    window.addEventListener('popstate', () => {
+      if (dialog.open) {
+        pushed = false;
+        close(true);
+      }
+    });
+  }
+</script>

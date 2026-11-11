@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "version": "0.3.1",
+  "description": "Cloudflare R2 Standard delivery configuration template (Round 03.1). Copy to config/r2.config.local.json to customize locally. Never put credentials in this file.",
+  "provider": "cloudflare-r2",
+  "storageClass": "Standard",
+  "bucketName": "portfolio-media",
+  "customDomain": "https://media.example.com",
+  "siteOrigins": [
+    "https://creative.example.com",
+    "http://localhost:4321"
+  ],
+  "keyStrategy": {
+    "collectionPattern": "collections/{collection}/{slug}/{preset}.{version}{ext}",
+    "standalonePattern": "standalone/{slug}/{preset}.{version}{ext}",
+    "posterDelivery": "cloudflare-pages",
+    "posterPublicPath": "/media/posters/{slug}.webp",
+    "versionStrategy": "content-hash-8",
+    "defaultVersionTag": "v1"
+  },
+  "headers": {
+    "versioned": {
+      "Cache-Control": "public, max-age=31536000, immutable",
+      "Accept-Ranges": "bytes"
+    },
+    "mutable": {
+      "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+      "Accept-Ranges": "bytes"
+    },
+    "mimeTypes": {
+      ".mp4": "video/mp4",
+      ".webm": "video/webm",
+      ".webp": "image/webp",
+      ".avif": "image/avif",
+      ".jpg": "image/jpeg",
+      ".vtt": "text/vtt; charset=utf-8",
+      ".json": "application/json; charset=utf-8"
+    }
+  },
+  "rangePlayback": {
+    "enabled": true,
+    "requireFaststartMoov": true,
+    "safariInitialProbeBytes": "0-1",
+    "initialHeaderChunkBytes": 65536
+  },
+  "freeTierLimits": {
+    "storageGbMonth": 10.0,
+    "classAOperationsMonth": 1000000,
+    "classBOperationsMonth": 10000000,
+    "egressGbMonth": "unlimited-free"
+  },
+  "budget": {
+    "maxMonthlyCostUsd": 0.0,
+    "warnStorageGb": 7.0,
+    "maxStorageGb": 9.0,
+    "warnClassAOpsMonth": 500000,
+    "maxClassAOpsMonth": 900000,
+    "warnClassBOpsMonth": 5000000,
+    "maxClassBOpsMonth": 9000000
+  },
+  "trafficAssumptions": {
+    "monthlyUniqueVisitors": 5000,
+    "avgHoverPreviewsPerVisit": 6,
+    "avgFullVideoPlaysPerVisit": 2,
+    "avgRangeRequestsPerPlay": 8,
+    "monthlySyncUploads": 200
+  },
+  "ratesAboveFreeTierUsd": {
+    "storagePerGbMonth": 0.015,
+    "classAPerMillion": 4.5,
+    "classBPerMillion": 0.36,
+    "egressPerGb": 0.0
+  }
+}
+

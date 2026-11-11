@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Batch content & media intake manifest template (Round 03.1) — supports both Round 03 legacy fields (`source`, `thumbnail`) and Round 03.1 3-layer media fields (`masterSource`, `poster`, `previewUrl`, `playbackUrl`, `deliveryProvider`, `renditions`).",
+  "collections": [
+    {
+      "slug": "documentary-series-slug",
+      "title": "Documentary Series Title",
+      "kind": "series",
+      "status": "published",
+      "featured": true,
+      "order": 1,
+      "thumbnail": "/media/covers/documentary-series-slug.webp",
+      "tagline": "Optional short one-line description for the series.",
+      "year": "2026"
+    },
+    {
+      "slug": "vertical-channel-slug",
+      "title": "Vertical Channel Name",
+      "kind": "channel",
+      "status": "published",
+      "featured": true,
+      "order": 2,
+      "thumbnail": "/media/covers/vertical-channel-slug.webp",
+      "url": "https://www.youtube.com/@your-channel",
+      "year": "2026"
+    },
+    {
+      "slug": "brand-campaign-slug",
+      "title": "Brand Launch Campaign",
+      "kind": "brand",
+      "status": "published",
+      "featured": true,
+      "order": 3,
+      "thumbnail": "/media/covers/brand-campaign-slug.webp",
+      "client": "Brand Name",
+      "year": "2026"
+    }
+  ],
+  "videos": [
+    {
+      "slug": "series-ep-01",
+      "title": "Episode 01 — Opening Chapter",
+      "masterSource": {
+        "driveFileId": "1aBcDeFgHiJkLmNoPqRsTuVwXyZ",
+        "localPath": "/Volumes/GoogleDrive/My Drive/Portfolio-Masters/series/series-ep-01-master.mov",
+        "codec": "prores",
+        "width": 1920,
+        "height": 1080,
+        "fps": 24
+      },
+      "poster": "/media/posters/series-ep-01.webp",
+      "previewUrl": "https://media.example.com/collections/documentary-series-slug/series-ep-01/hover-preview.a1b2c3d4.mp4",
+      "playbackUrl": "https://media.example.com/collections/documentary-series-slug/series-ep-01/web-standard.e5f6a7b8.mp4",
+      "deliveryProvider": "r2",
+      "renditions": {
+        "poster": {
+          "url": "/media/posters/series-ep-01.webp",
+          "width": 1600,
+          "height": 900,
+          "deliveryProvider": "pages"
+        },
+        "hover-preview": {
+          "preset": "hover-preview",
+          "url": "https://media.example.com/collections/documentary-series-slug/series-ep-01/hover-preview.a1b2c3d4.mp4",
+          "width": 960,
+          "height": 540,
+          "durationSec": 5,
+          "deliveryProvider": "r2"
+        },
+        "web-standard": {
+          "preset": "web-standard",
+          "url": "https://media.example.com/collections/documentary-series-slug/series-ep-01/web-standard.e5f6a7b8.mp4",
+          "width": 1920,
+          "height": 1080,
+          "crf": 20,
+          "faststart": true,
+          "deliveryProvider": "r2"
+        }
+      },
+      "orientation": "16:9",
+      "collections": [
+        "documentary-series-slug"
+      ],
+      "order": 1,
+      "featured": true,
+      "status": "published",
+      "duration": "08:45",
+      "year": "2026",
+      "role": "Lead Editor"
+    },
+    {
+      "slug": "series-ep-02",
+      "title": "Episode 02 — Second Movement",
+      "source": "https://vimeo.com/123456789/abcdef1234",
+      "thumbnail": "/media/posters/series-ep-02.webp",
+      "deliveryProvider": "vimeo",
+      "orientation": "landscape",
+      "collections": [
+        "documentary-series-slug"
+      ],
+      "order": 2,
+      "featured": false,
+      "status": "published",
+      "duration": "10:12"
+    },
+    {
+      "slug": "campaign-hero-cut",
+      "title": "Brand Launch — Hero Film",
+      "masterSource": "gdrive://Portfolio-Masters/brand/campaign-hero-cut.mov",
+      "poster": "/media/posters/campaign-hero-cut.webp",
+      "previewUrl": "https://media.example.com/collections/brand-campaign-slug/campaign-hero-cut/hero-ambient.c9d0e1f2.mp4",
+      "playbackUrl": "https://media.example.com/collections/brand-campaign-slug/campaign-hero-cut/web-high-quality.11223344.mp4",
+      "deliveryProvider": "r2",
+      "renditions": {
+        "hero-ambient": {
+          "preset": "hero-ambient",
+          "url": "https://media.example.com/collections/brand-campaign-slug/campaign-hero-cut/hero-ambient.c9d0e1f2.mp4",
+          "width": 1920,
+          "height": 1080,
+          "durationSec": 8
+        },
+        "web-high-quality": {
+          "preset": "web-high-quality",
+          "url": "https://media.example.com/collections/brand-campaign-slug/campaign-hero-cut/web-high-quality.11223344.mp4",
+          "width": 1920,
+          "height": 1080,
+          "crf": 18,
+          "faststart": true
+        },
+        "web-standard": {
+          "preset": "web-standard",
+          "url": "https://media.example.com/collections/brand-campaign-slug/campaign-hero-cut/web-standard.55667788.mp4",
+          "width": 1920,
+          "height": 1080,
+          "crf": 20,
+          "faststart": true
+        }
+      },
+      "orientation": "16:9",
+      "collections": [
+        "brand-campaign-slug"
+      ],
+      "order": 1,
+      "featured": true,
+      "status": "published",
+      "duration": "01:30",
+      "role": "Editor"
+    },
+    {
+      "slug": "campaign-vertical-cutdown",
+      "title": "Brand Launch — 9:16 Social Cutdown",
+      "masterSource": "gdrive://Portfolio-Masters/vertical/campaign-vertical-cutdown.mp4",
+      "poster": "/media/posters/campaign-vertical-cutdown.webp",
+      "previewUrl": "https://media.example.com/collections/brand-campaign-slug/campaign-vertical-cutdown/hover-preview.99aabbcc.mp4",
+      "playbackUrl": "https://media.example.com/collections/brand-campaign-slug/campaign-vertical-cutdown/web-standard.ddeeff00.mp4",
+      "deliveryProvider": "r2",
+      "orientation": "9:16",
+      "collections": [
+        "brand-campaign-slug",
+        "vertical-channel-slug"
+      ],
+      "collectionOrder": {
+        "brand-campaign-slug": 2,
+        "vertical-channel-slug": 1
+      },
+      "order": 10,
+      "featured": true,
+      "status": "published",
+      "duration": "00:35"
+    },
+    {
+      "slug": "standalone-director-cut",
+      "title": "Standalone Short Film",
+      "source": "https://vimeo.com/112233445",
+      "thumbnail": "/media/posters/standalone-director-cut.webp",
+      "orientation": "16:9",
+      "collections": [],
+      "order": 1,
+      "featured": true,
+      "status": "published",
+      "duration": "03:20",
+      "year": "2026"
+    }
+  ]
+}

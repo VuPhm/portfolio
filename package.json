@@ -1,0 +1,31 @@
+{
+  "name": "creative-portfolio-video-editing",
+  "version": "0.3.1",
+  "private": true,
+  "description": "Apple-Inspired Video Editing Portfolio — Round 03.1 (Media Optimization & Cloudflare Delivery)",
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "dev:demo": "PUBLIC_DEMO_PREVIEW=true astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "media:inspect": "node scripts/media-inspect.mjs",
+    "media:encode": "node scripts/media-encode.mjs",
+    "media:r2": "node scripts/r2-adapter.mjs",
+    "media:verify-range": "node scripts/r2-adapter.mjs --verify-range",
+    "content:intake": "node scripts/content-intake.mjs",
+    "content:check": "node scripts/validate-content.mjs",
+    "youtube:sync": "node scripts/integrate-youtube.mjs",
+    "verify:integrity": "node scripts/validate-content.mjs --check-dist",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/check": "^0.9.12",
+    "@tailwindcss/vite": "^4.3.5",
+    "astro": "^7.4.8",
+    "tailwindcss": "^4.3.5",
+    "typescript": "^5.9.3"
+  }
+}

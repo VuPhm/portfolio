@@ -1,0 +1,356 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import VideoPlayer from '../../components/VideoPlayer.astro';
+import VideoGrid from '../../components/VideoGrid.astro';
+import { siteConfig, hasRealContactEmail } from '../../data/site';
+import {
+  getCollections,
+  getVideos,
+  videosIn,
+  videoCollectionIds,
+  type CollectionItem,
+  type VideoItem,
+} from '../../lib/content';
+import { resolveVideoPlayback, hostLabel } from '../../lib/media';
+
+export async function getStaticPaths() {
+  const [collections, videos] = await Promise.all([getCollections(), getVideos()]);
+  const collectionMap = new Map(collections.map((c) => [c.id, c]));
+
+  return videos.map((video) => {
+    const parentCollections = videoCollectionIds(video)
+      .map((id) => collectionMap.get(id))
+      .filter((c): c is CollectionItem => Boolean(c));
+
+    const primaryCollection = parentCollections[0];
+    const sequence = primaryCollection ? videosIn(primaryCollection.id, videos) : videos;
+    const seqIdx = sequence.findIndex((v) => v.id === video.id);
+
+    const prevVideo =
+      sequence.length > 1 && seqIdx !== -1
+        ? sequence[(seqIdx - 1 + sequence.length) % sequence.length]
+        : undefined;
+    const nextVideo =
+      sequence.length > 1 && seqIdx !== -1
+        ? sequence[(seqIdx + 1) % sequence.length]
+        : undefined;
+
+    // Select upcoming videos in circular sequence so large collections show relevant next episodes
+    const related: VideoItem[] = [];
+    if (primaryCollection && sequence.length > 1 && seqIdx !== -1) {
+      for (let step = 1; step < sequence.length && related.length < 6; step++) {
+        related.push(sequence[(seqIdx + step) % sequence.length]);
+      }
+    } else {
+      related.push(...videos.filter((v) => v.id !== video.id && v.data.featured).slice(0, 4));
+    }
+
+    return {
+      params: { slug: video.id },
+      props: {
+        video,
+        parentCollections,
+        related,
+        prevVideo,
+        nextVideo,
+        sequencePosition: seqIdx !== -1 && sequence.length > 1 ? { index: seqIdx + 1, total: sequence.length } : undefined,
+      },
+    };
+  });
+}
+
+interface Props {
+  video: VideoItem;
+  parentCollections: CollectionItem[];
+  related: VideoItem[];
+  prevVideo?: VideoItem;
+  nextVideo?: VideoItem;
+  sequencePosition?: { index: number; total: number };
+}
+
+const { video, parentCollections, related, prevVideo, nextVideo, sequencePosition } = Astro.props;
+const d = video.data;
+const source = resolveVideoPlayback(d);
+const primaryCollection = parentCollections[0];
+const metaItems = [d.year, d.duration, d.role, d.client].filter(Boolean);
+const isPortrait = d.orientation === 'portrait';
+const { cta } = siteConfig.personality;
+const hasEmail = hasRealContactEmail(siteConfig.contact.email);
+const mailSubject = encodeURIComponent(`Trao đổi về video: ${d.title}`);
+const contactHref = hasEmail
+  ? `mailto:${siteConfig.contact.email}?subject=${mailSubject}`
+  : '/#contact';
+const padLen = sequencePosition && sequencePosition.total >= 10 ? 2 : 1;
+---
+
+<BaseLayout
+  title={`${d.title} — ${siteConfig.siteTitle}`}
+  description={d.description ?? d.title}
+  ogImage={d.poster.src}
+  preloadImage={d.poster.src}
+  noindex={d.demo}
+>
+  <article class="page wrap">
+    <div class:list={['stage-column', isPortrait ? 'portrait' : 'landscape']}>
+      <nav class="back-row" aria-label="Breadcrumb">
+        {
+          primaryCollection ? (
+            <a class="back-link" href={`/collections/${primaryCollection.id}`}>
+              ‹ {primaryCollection.data.title}
+            </a>
+          ) : (
+            <a class="back-link" href="/works">‹ Tác phẩm</a>
+          )
+        }
+        {
+          sequencePosition && (
+            <span class="seq-counter" aria-label={`Video ${sequencePosition.index} trên ${sequencePosition.total}`}>
+              {String(sequencePosition.index).padStart(padLen, '0')} / {String(sequencePosition.total).padStart(padLen, '0')}
+            </span>
+          )
+        }
+      </nav>
+
+      <VideoPlayer video={video} />
+
+      <header class="info">
+        <div class="main-info">
+          {
+            parentCollections.length > 0 && (
+              <div class="collection-tags">
+                {parentCollections.map((c) => (
+                  <a class="collection-tag" href={`/collections/${c.id}`}>
+                    {c.data.title}
+                  </a>
+                ))}
+              </div>
+            )
+          }
+          <div class="title-row">
+            <h1>{d.title}</h1>
+            {d.demo && <span class="stat-badge">DEMO</span>}
+          </div>
+          {metaItems.length > 0 && <p class="meta">{metaItems.join(' · ')}</p>}
+          {d.description && <p class="description">{d.description}</p>}
+        </div>
+
+        {
+          source.type === 'external' && (
+            <a class="glass glass-btn" href={source.href} target="_blank" rel="noopener noreferrer">
+              <span>Xem trên {hostLabel(source.host)}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+            </a>
+          )
+        }
+      </header>
+
+      {
+        (prevVideo || nextVideo) && (
+          <nav class="seq-nav" aria-label="Điều hướng video">
+            {prevVideo ? (
+              <a class="seq-link prev" href={`/videos/${prevVideo.id}`}>
+                <span class="seq-dir">‹ Trước</span>
+                <span class="seq-title">{prevVideo.data.title}</span>
+              </a>
+            ) : (
+              <span />
+            )}
+            {nextVideo && nextVideo.id !== prevVideo?.id && (
+              <a class="seq-link next" href={`/videos/${nextVideo.id}`}>
+                <span class="seq-dir">Sau ›</span>
+                <span class="seq-title">{nextVideo.data.title}</span>
+              </a>
+            )}
+          </nav>
+        )
+      }
+    </div>
+
+    {
+      related.length > 0 && (
+        <section class="more-section" aria-labelledby="more-heading">
+          <div class="section-head">
+            <h2 class="section-title" id="more-heading">
+              {primaryCollection ? `Thêm trong ${primaryCollection.data.title}` : 'Video khác'}
+            </h2>
+            {primaryCollection && (
+              <a class="link-more" href={`/collections/${primaryCollection.id}`}>
+                Xem tất cả {primaryCollection.data.title}
+              </a>
+            )}
+          </div>
+          <VideoGrid
+            videos={related}
+            group={`related-${video.id}`}
+            transition={false}
+            showOrientationSwitch={false}
+          />
+        </section>
+      )
+    }
+
+    <aside class="context-cta reveal" aria-label="Trao đổi dự án">
+      <p class="context-cta-prompt">{cta.videoContextPrompt}</p>
+      <a
+        class="context-cta-link"
+        href={contactHref}
+        data-event="contact_click"
+        data-event-target={`video_${video.id}`}
+      >
+        {cta.videoContextAction}
+      </a>
+    </aside>
+  </article>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: calc(var(--nav-h) + clamp(32px, 5vw, 56px));
+  }
+
+  .stage-column {
+    margin-inline: auto;
+  }
+  .stage-column.landscape {
+    width: min(100%, 1280px, calc((100svh - 200px) * 16 / 9));
+  }
+  .stage-column.portrait {
+    width: min(100%, 440px, calc((100svh - 180px) * 9 / 16));
+  }
+
+  .back-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .back-link {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+    transition: color var(--dur-fast) ease;
+  }
+
+  .back-link:hover {
+    color: var(--fg);
+  }
+
+  .seq-counter {
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .info {
+    margin-top: clamp(24px, 3.2vw, 36px);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px 32px;
+  }
+
+  .main-info {
+    display: grid;
+    gap: 8px;
+  }
+
+  .title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .collection-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .collection-tag {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--fg-2);
+    transition: color var(--dur-fast) ease;
+  }
+
+  .collection-tag:hover {
+    color: var(--fg);
+  }
+
+  .collection-tag + .collection-tag::before {
+    content: '· ';
+    margin-right: 4px;
+    color: var(--fg-3);
+  }
+
+  h1 {
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: var(--tracking-snug);
+  }
+
+  .meta {
+    font-size: var(--fs-sm);
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .description {
+    margin-top: 8px;
+    font-size: var(--fs-body);
+    color: var(--fg-2);
+    max-width: 60ch;
+  }
+
+  .seq-nav {
+    margin-top: clamp(24px, 3.2vw, 36px);
+    padding-top: 20px;
+    border-top: 1px solid var(--hairline);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+  }
+
+  .seq-link {
+    display: grid;
+    gap: 2px;
+    max-width: 48%;
+  }
+  .seq-link.next {
+    text-align: right;
+    margin-left: auto;
+  }
+  .seq-dir {
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+    transition: color var(--dur-fast) ease;
+  }
+  .seq-title {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--fg-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    transition: color var(--dur-fast) ease;
+  }
+  .seq-link:hover .seq-dir,
+  .seq-link:hover .seq-title {
+    color: var(--fg);
+  }
+
+  .more-section {
+    margin-top: var(--section);
+    padding-top: clamp(32px, 4vw, 56px);
+    border-top: 1px solid var(--hairline);
+  }
+
+  .context-cta {
+    margin-top: clamp(56px, 7vw, 96px);
+  }
+</style>

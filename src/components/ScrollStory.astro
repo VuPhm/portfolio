@@ -1,0 +1,176 @@
+---
+/**
+ * ScrollStory — foundation for an Apple-style scroll-driven section.
+ * Disabled by default (`siteConfig.scrollStory.enabled`). Renders a sticky cinematic stage
+ * whose progress (0 → 1) is exposed as `--progress` for CSS, toggles chapters, and in
+ * `scrub-video` mode maps progress to `video.currentTime`.
+ * `frames` mode (canvas image sequence) is reserved: it currently renders the poster.
+ */
+import type { ScrollStoryConfig } from '../lib/scroll-story';
+
+interface Props {
+  config: ScrollStoryConfig;
+}
+
+const { config } = Astro.props;
+---
+
+{
+  config.enabled && (
+    <section class="story" data-scroll-story data-mode={config.mode} style={`--length: ${config.lengthVh}svh`} aria-label="Story">
+      <div class="sticky">
+        <div class="stage">
+          {config.mode === 'scrub-video' ? (
+            <video muted playsinline preload="auto" poster={config.poster.src} aria-hidden="true">
+              {config.video.webm && <source src={config.video.webm} type="video/webm" />}
+              <source src={config.video.src} />
+            </video>
+          ) : (
+            <img src={config.poster.src} alt={config.poster.alt} loading="lazy" decoding="async" />
+          )}
+        </div>
+        <div class="chapters">
+          {config.chapters.map((c, i) => (
+            <p class="chapter" data-from={c.from} data-to={c.to} data-active={i === 0 ? '' : undefined}>
+              <span class="chapter-title">{c.title}</span>
+              {c.body && <span class="chapter-body">{c.body}</span>}
+            </p>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .story {
+    --progress: 0;
+    position: relative;
+    height: var(--length);
+    margin-top: var(--section);
+  }
+  .sticky {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+  .stage {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transform: scale(calc(0.84 + var(--progress) * 0.16));
+    border-radius: calc((1 - var(--progress)) * var(--r-xl));
+    will-change: transform;
+  }
+  .stage img,
+  .stage video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .chapters {
+    position: relative;
+    display: grid;
+    place-items: center;
+    text-align: center;
+    padding-inline: var(--gutter);
+  }
+  .chapter {
+    grid-area: 1 / 1;
+    display: grid;
+    gap: 12px;
+    opacity: 0;
+    transform: translateY(16px);
+    transition:
+      opacity 0.5s ease,
+      transform 0.6s var(--ease-out);
+  }
+  .chapter[data-active] {
+    opacity: 1;
+    transform: none;
+  }
+  .chapter-title {
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    letter-spacing: var(--tracking-tight);
+    text-shadow: 0 2px 30px rgb(0 0 0 / 0.4);
+  }
+  .chapter-body {
+    font-size: var(--fs-lead);
+    color: var(--fg-2);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .story {
+      height: auto;
+    }
+    .sticky {
+      position: relative;
+      height: auto;
+      aspect-ratio: 16 / 9;
+    }
+    .stage {
+      transform: none;
+      border-radius: var(--r-xl);
+    }
+    .chapter {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .chapter:not(:first-child) {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  for (const section of document.querySelectorAll<HTMLElement>('[data-scroll-story]')) {
+    if (reduce) continue;
+    const chapters = [...section.querySelectorAll<HTMLElement>('.chapter')];
+    const video = section.dataset.mode === 'scrub-video' ? section.querySelector('video') : null;
+    let active = false;
+    let ticking = false;
+    let lastTime = -1;
+
+    const update = () => {
+      ticking = false;
+      const rect = section.getBoundingClientRect();
+      const range = rect.height - window.innerHeight;
+      const p = Math.min(1, Math.max(0, range > 0 ? -rect.top / range : 0));
+      section.style.setProperty('--progress', p.toFixed(4));
+      for (const c of chapters) {
+        const on = p >= Number(c.dataset.from) && (p < Number(c.dataset.to) || (p === 1 && Number(c.dataset.to) === 1));
+        c.toggleAttribute('data-active', on);
+      }
+      if (video && video.duration) {
+        const t = p * video.duration;
+        if (Math.abs(t - lastTime) > 1 / 30) {
+          video.currentTime = t;
+          lastTime = t;
+        }
+      }
+    };
+
+    const onScroll = () => {
+      if (active && !ticking) {
+        ticking = true;
+        requestAnimationFrame(update);
+      }
+    };
+
+    new IntersectionObserver(([entry]) => {
+      active = entry.isIntersecting;
+      if (active) onScroll();
+    }).observe(section);
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+  }
+</script>
+

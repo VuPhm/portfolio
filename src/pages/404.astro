@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { siteConfig } from '../data/site';
+---
+
+<BaseLayout title={`Không tìm thấy trang — ${siteConfig.siteTitle}`} noindex={true}>
+  <section class="not-found wrap" aria-labelledby="not-found-title">
+    <p class="eyebrow">404</p>
+    <h1 id="not-found-title">Không tìm thấy trang.</h1>
+    <p class="subline">Trang hoặc video bạn đang tìm không tồn tại hoặc đã được gỡ bỏ.</p>
+    <div class="actions">
+      <a class="primary-btn" href="/">
+        <span>Về trang chủ</span>
+      </a>
+      <a class="glass glass-btn" href="/works">
+        <span>{siteConfig.personality.cta.viewAllCollections}</span>
+      </a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    min-height: 76svh;
+    padding-top: calc(var(--nav-h) + clamp(64px, 10vw, 128px));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  h1 {
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: var(--tracking-tight);
+    max-width: 18ch;
+  }
+  .subline {
+    font-size: var(--fs-lead);
+    color: var(--fg-2);
+    max-width: 44ch;
+  }
+  .actions {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+</style>
+

@@ -1,0 +1,104 @@
+---
+import { siteConfig } from '../data/site';
+
+interface Props {
+  eyebrow?: string;
+  headline?: string;
+  subline?: string;
+  actionHref?: string;
+  actionLabel?: string;
+  compact?: boolean;
+}
+
+const { emptyState } = siteConfig.personality;
+const {
+  eyebrow = emptyState.eyebrow,
+  headline = emptyState.headline,
+  subline = emptyState.subline,
+  actionHref = '/#contact',
+  actionLabel = emptyState.actionLabel,
+  compact = false,
+} = Astro.props;
+---
+
+<div class:list={['empty-stage', { compact }]} role="status">
+  <div class="empty-frame" aria-hidden="true">
+    <span class="ratio-mark">16:9</span>
+    <span class="ratio-dot">·</span>
+    <span class="ratio-mark">9:16</span>
+  </div>
+  <div class="empty-copy">
+    {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+    <h3 class="empty-title">{headline}</h3>
+    {subline && <p class="empty-subline">{subline}</p>}
+  </div>
+  {
+    actionHref && actionLabel && (
+      <a
+        class="glass glass-btn"
+        href={actionHref}
+        data-event={actionHref.includes('contact') ? 'contact_click' : undefined}
+        data-event-target={actionHref.includes('contact') ? 'empty_state' : undefined}
+      >
+        <span>{actionLabel}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m9 18 6-6-6-6" />
+        </svg>
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .empty-stage {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px 36px;
+    padding: clamp(32px, 5vw, 56px);
+    border-radius: var(--r-lg);
+    background:
+      radial-gradient(80% 120% at 15% 0%, rgb(255 255 255 / 0.045), transparent 65%),
+      var(--surface);
+    box-shadow: inset 0 0 0 1px var(--hairline);
+  }
+  .empty-stage.compact {
+    padding: clamp(24px, 3.6vw, 40px);
+    border-radius: var(--r-md);
+  }
+  .empty-frame {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    background: rgb(255 255 255 / 0.04);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .empty-copy {
+    flex: 1 1 320px;
+    display: grid;
+    gap: 6px;
+  }
+  .empty-title {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: var(--tracking-snug);
+    color: var(--fg);
+  }
+  .empty-subline {
+    font-size: var(--fs-body);
+    color: var(--fg-2);
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+</style>
+

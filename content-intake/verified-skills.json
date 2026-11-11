@@ -1,0 +1,50 @@
+{
+  "version": "1.0.0",
+  "auditDate": "2026-11-11",
+  "sourceUrl": "https://sites.google.com/d/1u3pTMq9vd5Q-4fzNGemWUNwwI4MWGVmF/p/1Fjw6PBWgQx4-ZLHv3YwIkqNxVi2P0OaB/edit",
+  "accessStatus": "HTTP 302 Redirect to accounts.google.com/ServiceLogin (Private edit link requiring Google account authentication; not public/crawlable without user credentials)",
+  "complianceRule": "Do not assume Premiere Pro, After Effects, DaVinci Resolve, CapCut, Photoshop or any tool based on industry convention or project output types. Unverified software tools must remain hidden from website.",
+  "verifiedPersonalIdentity": {
+    "name": "VUPHM",
+    "role": "Video Editor",
+    "email": "contact@vuphm.io.vn",
+    "googleDriveFolder": "https://drive.google.com/drive/folders/1aDD-kdQj_pUjHSYqqPHcvp8oVO68LnKK?usp=drive_link"
+  },
+  "verifiedFields": [
+    "Video ngắn 9:16 (Shorts / Reels / TikTok)",
+    "Video thương mại & quảng bá",
+    "Recap & sự kiện"
+  ],
+  "verifiedSkills": [
+    {
+      "id": "editing",
+      "label": "Biên tập & cắt dựng",
+      "name": "Video Editing",
+      "status": "VERIFIED_FROM_CATALOG"
+    },
+    {
+      "id": "color",
+      "label": "Chỉnh màu",
+      "name": "Color Grading",
+      "status": "VERIFIED_FROM_CATALOG"
+    },
+    {
+      "id": "sound",
+      "label": "Hậu kỳ âm thanh",
+      "name": "Sound Post",
+      "status": "VERIFIED_FROM_CATALOG"
+    }
+  ],
+  "unverifiedTools": {
+    "candidates": [
+      "Adobe Premiere Pro",
+      "Adobe After Effects",
+      "DaVinci Resolve",
+      "Adobe Photoshop",
+      "CapCut"
+    ],
+    "status": "HIDDEN",
+    "reason": "Requires explicit document confirmation from Google Sites or user profile before publishing to production UI."
+  }
+}
+

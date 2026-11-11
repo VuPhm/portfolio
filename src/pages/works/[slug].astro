@@ -1,0 +1,68 @@
+---
+/**
+ * Legacy route preservation for Round 01 (`/works/[slug]`).
+ * Redirects cleanly to `/videos/[slug]` or `/collections/[slug]` ONLY when the target
+ * entry is actively published (never generating demo redirect pages when `demoPreview` is false).
+ */
+import { getCollections, getVideos } from '../../lib/content';
+
+export async function getStaticPaths() {
+  const [collections, videos] = await Promise.all([getCollections(), getVideos()]);
+  const validTargets = new Set<string>([
+    ...collections.map((c) => `/collections/${c.id}`),
+    ...videos.map((v) => `/videos/${v.id}`),
+  ]);
+
+  const legacyAliasMap: Record<string, string> = {
+    '01-kinetic-silence': '/videos/kinetic-silence',
+    '02-nocturne-in-24-frames': '/videos/nocturne',
+    '03-fragments-of-form': '/videos/field-notes-02',
+    '04-pulse-vertical-study': '/videos/daily-frames-pulse',
+    '05-monolith-chronicle': '/videos/field-notes-01',
+    '06-chromatic-drift': '/videos/campaign-film',
+  };
+
+  const routes = new Map<string, string>();
+
+  for (const [alias, target] of Object.entries(legacyAliasMap)) {
+    if (validTargets.has(target)) {
+      routes.set(alias, target);
+    }
+  }
+
+  for (const c of collections) {
+    routes.set(c.id, `/collections/${c.id}`);
+  }
+  for (const v of videos) {
+    routes.set(v.id, `/videos/${v.id}`);
+  }
+
+  return [...routes.entries()].map(([slug, target]) => ({
+    params: { slug },
+    props: { target },
+  }));
+}
+
+interface Props {
+  target: string;
+}
+
+const { target } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="refresh" content={`0;url=${target}`} />
+    <link rel="canonical" href={target} />
+    <title>Redirecting…</title>
+    <script is:inline define:vars={{ target }}>
+      window.location.replace(target);
+    </script>
+  </head>
+  <body style="background:#000;color:#86868b;font-family:-apple-system,BlinkMacSystemFont,sans-serif;display:grid;place-items:center;min-height:100svh;margin:0">
+    <p><a href={target} style="color:#f5f5f7;text-decoration:none">Continue ›</a></p>
+  </body>
+</html>

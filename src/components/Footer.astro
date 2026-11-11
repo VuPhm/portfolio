@@ -1,0 +1,54 @@
+---
+import { siteConfig, isRealSocialLink } from '../data/site';
+const year = new Date().getFullYear();
+const realSocials = siteConfig.contact.socials.filter(isRealSocialLink);
+---
+
+<footer class="footer">
+  <div class="wrap row">
+    <p>© {year} {siteConfig.name}</p>
+    {
+      realSocials.length > 0 && (
+        <ul>
+          {realSocials.map((s) => (
+            <li>
+              <a href={s.url} target="_blank" rel="noopener noreferrer">
+                {s.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</footer>
+
+<style>
+  .footer {
+    margin-top: var(--section);
+    padding-block: 28px max(28px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--hairline);
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px 24px;
+  }
+  ul {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  a {
+    transition: color var(--dur-fast) ease;
+  }
+  a:hover {
+    color: var(--fg);
+  }
+</style>

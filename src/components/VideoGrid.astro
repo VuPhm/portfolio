@@ -1,0 +1,390 @@
+---
+/**
+ * Gallery grid with a visual rule for mixed aspect ratios & large-collection scaling:
+ * - Landscape (16:9) and portrait (9:16) videos are never forced into the same row.
+ * - Each orientation gets its own rhythm — wide cards in 1–4 columns, tall cards in a
+ *   denser shelf (2 columns on phones, up to 6 on wide screens).
+ * - Progressive batch pagination ("Show more") keeps initial DOM/rendering light when a
+ *   collection or archive grows to dozens of videos, without adding text bloat.
+ */
+import VideoCard from './VideoCard.astro';
+import EmptyState from './EmptyState.astro';
+import { getCollectionKinds, groupByOrientation, videoKinds, type VideoItem } from '../lib/content';
+import { siteConfig } from '../data/site';
+
+interface Props {
+  videos: VideoItem[];
+  group: string;
+  /** `feature` = max 2 large columns (homepage selection). */
+  layout?: 'auto' | 'feature';
+  /** Labels shown only when both orientations are present. */
+  labels?: { landscape: string; portrait: string };
+  eagerCount?: number;
+  transition?: boolean;
+  /** Initial batch size for landscape (16:9) videos (`0` disables pagination). */
+  landscapePageSize?: number;
+  /** Initial batch size for portrait (9:16) videos (`0` disables pagination). */
+  portraitPageSize?: number;
+  /** Show quick orientation toggle when a collection mixes 16:9 and 9:16 at scale. */
+  showOrientationSwitch?: boolean;
+}
+
+const {
+  videos,
+  group,
+  layout = 'auto',
+  labels = {
+    landscape: siteConfig.personality.selectedVideos.landscapeHeading,
+    portrait: siteConfig.personality.selectedVideos.portraitHeading,
+  },
+  eagerCount = 0,
+  transition = true,
+  landscapePageSize = layout === 'feature' ? 0 : 12,
+  portraitPageSize = layout === 'feature' ? 0 : 18,
+  showOrientationSwitch = layout === 'auto',
+} = Astro.props;
+
+const { landscape, portrait } = groupByOrientation(videos);
+const mixed = landscape.length > 0 && portrait.length > 0;
+const showSwitch = showOrientationSwitch && mixed && videos.length >= 6;
+const kinds = await getCollectionKinds();
+
+const landscapeHasMore = landscapePageSize > 0 && landscape.length > landscapePageSize;
+const portraitHasMore = portraitPageSize > 0 && portrait.length > portraitPageSize;
+---
+
+{
+  videos.length === 0 ? (
+    <EmptyState
+      compact
+      eyebrow=""
+      headline={siteConfig.personality.emptyState.collectionHeadline}
+      subline={siteConfig.personality.emptyState.collectionSubline}
+    />
+  ) : (
+    <div class="video-grid" data-layout={layout} data-video-grid>
+      {showSwitch && (
+        <div class="orientation-bar">
+          <div class="orientation-switch glass" role="tablist" aria-label="Lọc theo định dạng">
+            <button
+              type="button"
+              role="tab"
+              class="orient-btn"
+              aria-selected="true"
+              data-orient-filter="all"
+            >
+              <span>Tất cả</span>
+              <span class="orient-count">{videos.length}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="orient-btn"
+              aria-selected="false"
+              data-orient-filter="landscape"
+            >
+              <span>16:9</span>
+              <span class="orient-count">{landscape.length}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              class="orient-btn"
+              aria-selected="false"
+              data-orient-filter="portrait"
+            >
+              <span>9:16</span>
+              <span class="orient-count">{portrait.length}</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {landscape.length > 0 && (
+        <div
+          class="group"
+          data-orientation-group="landscape"
+          data-page-size={landscapePageSize}
+        >
+          {mixed && (
+            <div class="group-head">
+              <h3 class="group-label">{labels.landscape}</h3>
+              {landscape.length > 4 && <span class="group-count">{landscape.length}</span>}
+            </div>
+          )}
+          <ul class="grid landscape" role="list">
+            {landscape.map((video, i) => {
+              const hiddenByPage = landscapeHasMore && i >= landscapePageSize;
+              const deferRender = landscape.length > 12 && i >= 6;
+              return (
+                <li
+                  class:list={['reveal', { 'deferred-item': deferRender }]}
+                  data-kinds={videoKinds(video, kinds)}
+                  data-more-hidden={hiddenByPage ? 'true' : undefined}
+                >
+                  <VideoCard
+                    video={video}
+                    group={group}
+                    eager={i < eagerCount}
+                    transition={transition}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+          {landscapeHasMore && (
+            <div class="more-row">
+              <button
+                type="button"
+                class="glass glass-btn load-more-btn"
+                data-load-more
+                data-step={landscapePageSize}
+              >
+                <span>Xem thêm</span>
+                <span class="more-count" data-more-count>
+                  +{landscape.length - landscapePageSize}
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {portrait.length > 0 && (
+        <div
+          class="group"
+          data-orientation-group="portrait"
+          data-page-size={portraitPageSize}
+        >
+          {mixed && (
+            <div class="group-head">
+              <h3 class="group-label">{labels.portrait}</h3>
+              {portrait.length > 4 && <span class="group-count">{portrait.length}</span>}
+            </div>
+          )}
+          <ul class="grid portrait" role="list">
+            {portrait.map((video, i) => {
+              const hiddenByPage = portraitHasMore && i >= portraitPageSize;
+              const deferRender = portrait.length > 12 && i >= 8;
+              return (
+                <li
+                  class:list={['reveal', { 'deferred-item': deferRender }]}
+                  data-kinds={videoKinds(video, kinds)}
+                  data-more-hidden={hiddenByPage ? 'true' : undefined}
+                >
+                  <VideoCard
+                    video={video}
+                    group={group}
+                    eager={landscape.length === 0 && i < eagerCount}
+                    transition={transition}
+                  />
+                </li>
+              );
+            })}
+          </ul>
+          {portraitHasMore && (
+            <div class="more-row">
+              <button
+                type="button"
+                class="glass glass-btn load-more-btn"
+                data-load-more
+                data-step={portraitPageSize}
+              >
+                <span>Xem thêm</span>
+                <span class="more-count" data-more-count>
+                  +{portrait.length - portraitPageSize}
+                </span>
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+<style>
+  .video-grid {
+    display: grid;
+    gap: clamp(40px, 5vw, 64px);
+  }
+  .orientation-bar {
+    display: flex;
+    justify-content: flex-start;
+    margin-bottom: -16px;
+  }
+  .orientation-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px;
+    border-radius: var(--r-pill);
+  }
+  .orient-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 13px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: transparent;
+    color: var(--fg-2);
+    font-family: inherit;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      color var(--dur-fast) ease,
+      background-color var(--dur-fast) ease;
+  }
+  .orient-btn:hover {
+    color: var(--fg);
+  }
+  .orient-btn[aria-selected='true'] {
+    color: var(--fg);
+    background: rgb(255 255 255 / 0.12);
+  }
+  .orient-count {
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .orient-btn[aria-selected='true'] .orient-count {
+    color: var(--fg-2);
+  }
+
+  .group-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .group-label {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    letter-spacing: var(--tracking-snug);
+  }
+  .group-count {
+    font-size: var(--fs-sm);
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+  .grid {
+    display: grid;
+    gap: clamp(28px, 3vw, 40px) var(--gap);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .grid.landscape {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr));
+  }
+  [data-layout='feature'] .grid.landscape {
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 734px) {
+    [data-layout='feature'] .grid.landscape {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .grid.portrait {
+    grid-template-columns: repeat(auto-fill, minmax(clamp(148px, 15vw, 220px), 1fr));
+    row-gap: clamp(24px, 2.6vw, 36px);
+  }
+
+  /* Deferred layout rendering for large offscreen galleries */
+  .deferred-item {
+    content-visibility: auto;
+    contain-intrinsic-size: auto none auto 280px;
+  }
+
+  li[hidden],
+  li[data-filter-hidden='true'],
+  li[data-more-hidden='true'],
+  .group[hidden] {
+    display: none;
+  }
+
+  .more-row {
+    display: flex;
+    justify-content: center;
+    margin-top: clamp(28px, 3.5vw, 44px);
+  }
+  .more-row[hidden] {
+    display: none;
+  }
+  .load-more-btn {
+    gap: 8px;
+    padding-inline: 22px;
+  }
+  .more-count {
+    color: var(--fg-2);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+
+<script>
+  for (const gridRoot of document.querySelectorAll<HTMLElement>('[data-video-grid]')) {
+    const groups = gridRoot.querySelectorAll<HTMLElement>('.group[data-orientation-group]');
+
+    function syncGroupButton(groupEl: HTMLElement) {
+      const moreBtn = groupEl.querySelector<HTMLButtonElement>('[data-load-more]');
+      const moreRow = moreBtn?.parentElement;
+      const moreCount = groupEl.querySelector<HTMLElement>('[data-more-count]');
+      if (!moreBtn || !moreRow) return;
+
+      const remaining = groupEl.querySelectorAll<HTMLElement>(
+        'li[data-more-hidden="true"]:not([data-filter-hidden="true"])'
+      ).length;
+
+      moreRow.hidden = remaining === 0;
+      if (moreCount) {
+        moreCount.textContent = `+${remaining}`;
+      }
+    }
+
+    for (const groupEl of groups) {
+      const moreBtn = groupEl.querySelector<HTMLButtonElement>('[data-load-more]');
+      if (!moreBtn) continue;
+
+      moreBtn.addEventListener('click', () => {
+        const step = Number(moreBtn.dataset.step) || 12;
+        const hiddenItems = [
+          ...groupEl.querySelectorAll<HTMLElement>(
+            'li[data-more-hidden="true"]:not([data-filter-hidden="true"])'
+          ),
+        ];
+        for (const item of hiddenItems.slice(0, step)) {
+          item.removeAttribute('data-more-hidden');
+        }
+        syncGroupButton(groupEl);
+      });
+    }
+
+    // Orientation switch (All / 16:9 / 9:16)
+    const orientBtns = gridRoot.querySelectorAll<HTMLButtonElement>('[data-orient-filter]');
+    if (orientBtns.length > 0) {
+      for (const btn of orientBtns) {
+        btn.addEventListener('click', () => {
+          const target = btn.dataset.orientFilter ?? 'all';
+          for (const b of orientBtns) {
+            b.setAttribute('aria-selected', String(b === btn));
+          }
+          for (const groupEl of groups) {
+            const orient = groupEl.dataset.orientationGroup;
+            groupEl.hidden = target !== 'all' && orient !== target;
+          }
+        });
+      }
+    }
+
+    // Allow external filter scripts (e.g. /works) to trigger pagination resync
+    gridRoot.addEventListener('portfolio:filter-change', () => {
+      for (const groupEl of groups) {
+        syncGroupButton(groupEl);
+      }
+    });
+  }
+</script>

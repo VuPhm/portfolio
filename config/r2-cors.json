@@ -1,0 +1,31 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": [
+          "https://vuphm.io.vn",
+          "https://www.vuphm.io.vn",
+          "http://localhost:4321",
+          "http://localhost:3000"
+        ],
+        "methods": [
+          "GET",
+          "HEAD"
+        ],
+        "headers": [
+          "Range",
+          "If-None-Match",
+          "If-Modified-Since",
+          "Content-Type"
+        ]
+      },
+      "exposeHeaders": [
+        "Accept-Ranges",
+        "Content-Range",
+        "Content-Length",
+        "ETag"
+      ],
+      "maxAgeSeconds": 86400
+    }
+  ]
+}

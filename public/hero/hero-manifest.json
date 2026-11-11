@@ -1,0 +1,109 @@
+{
+  "version": "1.0.0",
+  "session": "SESSION 03 — Autonomous AI Hero Production & Integration",
+  "creativeDirection": {
+    "aesthetic": "Apple Product Showcase × iOS 27 Glassmorphic Minimalism",
+    "composition": "Three floating translucent glass panels with depth, central panel elevated and prominent",
+    "palette": "Near-black obsidian background (#06070a - #0a0b0f), dark chromatic silk curves, platinum caustics",
+    "elementsExcluded": [
+      "No text",
+      "No logos",
+      "No iPhone frames/mockups",
+      "No fake UI",
+      "No neon/glitch",
+      "No portfolio footage"
+    ]
+  },
+  "conceptEvaluations": [
+    {
+      "id": "concept-1",
+      "file": "concept-1.jpg",
+      "meanRGB": [
+        26.4,
+        28.4,
+        32.9
+      ],
+      "centerProminenceRatio": 1.3,
+      "verdict": "Rejected (Overall luminance too dim, center prominence muted)"
+    },
+    {
+      "id": "concept-2",
+      "file": "concept-2.jpg",
+      "meanRGB": [
+        44.2,
+        48.5,
+        56.9
+      ],
+      "centerProminenceRatio": 1.04,
+      "verdict": "Rejected (Panels equally bright, lacks depth hierarchy, bottom area brighter than ideal for text)"
+    },
+    {
+      "id": "concept-3",
+      "file": "concept-3.jpg",
+      "meanRGB": [
+        39.7,
+        43.5,
+        48.2
+      ],
+      "centerProminenceRatio": 1.66,
+      "verdict": "Selected (Superior center focal prominence, deep #07080a bottom area giving optimal contrast for typography, exquisite squircle bevels and silk caustics)"
+    }
+  ],
+  "selectedConcept": "concept-3",
+  "prompt": "Apple Keynote stage aesthetic meets iOS 27 minimalist spatial glass. Three floating glass slabs suspended in clean studio space on near-black obsidian background (#06070a). The central slab stands out distinctly with clean rounded corners (squircle), subtle edge refraction, and gentle soft lighting from above. Inside the three panels: elegant dark liquid chrome silk curves, soft platinum and dark graphite gradients, ultra-delicate caustic light refractions. Completely clean, ultra-refined, peaceful, luxurious. Absolutely NO text, NO numbers, NO logos, NO devices, NO mockup borders, NO neon. 16:9 widescreen landscape.",
+  "assets": {
+    "heroPosterDesktop": {
+      "file": "hero-poster-desktop.webp",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "format": "image/webp",
+      "sizeBytes": 48532,
+      "sha256": "bfcfd7e13d3352af2656ddf763f2367c75d27f7b0747bbc420589629daa80ba7"
+    },
+    "heroPosterMobile": {
+      "file": "hero-poster-mobile.webp",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "format": "image/webp",
+      "sizeBytes": 28854,
+      "sha256": "0d1a92c9f574fd07b3b6d10dc26dc297ee11c633be464faacaf2a9373b796cb9"
+    },
+    "heroAmbientDesktop": {
+      "file": "hero-ambient-desktop.mp4",
+      "dimensions": [
+        1920,
+        1080
+      ],
+      "durationSec": 8.0,
+      "fps": 30,
+      "codec": "h264 (libx264)",
+      "pixelFormat": "yuv420p",
+      "sizeBytes": 1040382,
+      "sha256": "e046e55c71b1ea86257d2183f6e74d1c8bf7e471f7e8a7bd6cf457d256f1e279"
+    },
+    "heroAmbientMobile": {
+      "file": "hero-ambient-mobile.mp4",
+      "dimensions": [
+        1080,
+        1920
+      ],
+      "durationSec": 8.0,
+      "fps": 30,
+      "codec": "h264 (libx264)",
+      "pixelFormat": "yuv420p",
+      "sizeBytes": 369138,
+      "sha256": "24c9ba52c01a6ef0774c9e623e3718561fb1fb99b6cca3b6b1d28024a639f1ac"
+    }
+  },
+  "motionDesign": {
+    "type": "C2 continuous sinusoidal harmonic loop",
+    "zoomKinematics": "1.0 to 1.022 (desktop) / 1.0 to 1.020 (mobile)",
+    "levitationKinematics": "sinusoidal micro-levitation 6-8px",
+    "glassCaustics": "highlight sheen pulsing in sync with ambient drift",
+    "loopIntegrity": "Zero jump / frame 240 smoothly matches frame 0 in displacement and velocity"
+  }
+}

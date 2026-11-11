@@ -1,0 +1,460 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import CinematicStage from '../components/CinematicStage.astro';
+import CollectionCard from '../components/CollectionCard.astro';
+import VideoGrid from '../components/VideoGrid.astro';
+import ScrollStory from '../components/ScrollStory.astro';
+import EmptyState from '../components/EmptyState.astro';
+import GoogleDriveButton from '../components/GoogleDriveButton.astro';
+import { siteConfig, hasRealContactEmail, isRealSocialLink } from '../data/site';
+import {
+  getCollections,
+  getVideos,
+  selectedVideos,
+  summarize,
+  buildSiteStats,
+} from '../lib/content';
+
+const [collections, videos] = await Promise.all([getCollections(), getVideos()]);
+
+const { personality, identity, introduction, experience, skills, contact } = siteConfig;
+const heroVideo =
+  videos.find((v) => v.id === personality.hero.videoSlug) ??
+  videos.find((v) => v.data.featured) ??
+  videos[0];
+
+const featuredCollections = collections.filter((c) => c.data.featured);
+const shownCollections = (featuredCollections.length ? featuredCollections : collections)
+  .slice(0, 5)
+  .map((c) => summarize(c, videos));
+
+const candidatePicks = selectedVideos(videos, heroVideo?.id);
+const picks = (candidatePicks.length > 0 ? candidatePicks : videos.filter((v) => v.id !== heroVideo?.id)).slice(0, 6);
+const stats = buildSiteStats(collections, videos);
+const hasEmail = hasRealContactEmail(contact.email);
+const realSocials = contact.socials.filter(isRealSocialLink);
+const hasPublishedWork = collections.length > 0 || videos.length > 0;
+---
+
+<BaseLayout preloadImage={heroVideo?.data.poster.src}>
+  <CinematicStage
+    video={heroVideo}
+    headline={personality.hero.headline}
+    headlineAccent={personality.hero.headlineAccent}
+    subline={personality.hero.subline}
+  />
+
+  {
+    shownCollections.length > 0 ? (
+      <section class="section" id="collections" aria-labelledby="collections-title">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="section-intro">
+              {personality.collections.eyebrow && (
+                <p class="eyebrow">{personality.collections.eyebrow}</p>
+              )}
+              <h2 class="section-title" id="collections-title">
+                {personality.collections.headline}
+              </h2>
+              {personality.collections.subline && (
+                <p class="section-subline">{personality.collections.subline}</p>
+              )}
+            </div>
+            <a class="link-more" href="/works">
+              {personality.cta.viewAllCollections}
+            </a>
+          </div>
+
+          <ul class="collection-grid" role="list">
+            {shownCollections.map((summary, i) => (
+              <li class:list={['reveal', { wide: i === 0 && shownCollections.length % 2 === 1 }]}>
+                <CollectionCard
+                  summary={summary}
+                  size={i === 0 && shownCollections.length % 2 === 1 ? 'wide' : 'default'}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    ) : (
+      !hasPublishedWork && (
+        <section class="section" id="collections" aria-labelledby="collections-title">
+          <div class="wrap">
+            <div class="section-head reveal">
+              <div class="section-intro">
+                {personality.collections.eyebrow && (
+                  <p class="eyebrow">{personality.collections.eyebrow}</p>
+                )}
+                <h2 class="section-title" id="collections-title">
+                  {personality.collections.headline}
+                </h2>
+                {personality.collections.subline && (
+                  <p class="section-subline">{personality.collections.subline}</p>
+                )}
+              </div>
+            </div>
+            <EmptyState />
+          </div>
+        </section>
+      )
+    )
+  }
+
+  <ScrollStory config={siteConfig.scrollStory} />
+
+  {
+    picks.length > 0 && (
+      <section class="section" id={!shownCollections.length ? 'collections' : undefined} aria-labelledby="videos-title">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="section-intro">
+              {personality.selectedVideos.eyebrow && (
+                <p class="eyebrow">{personality.selectedVideos.eyebrow}</p>
+              )}
+              <h2 class="section-title" id="videos-title">
+                {personality.selectedVideos.headline}
+              </h2>
+              {personality.selectedVideos.subline && (
+                <p class="section-subline">{personality.selectedVideos.subline}</p>
+              )}
+            </div>
+          </div>
+          <VideoGrid videos={picks} group="selected" layout="feature" />
+        </div>
+      </section>
+    )
+  }
+
+  {
+    stats.length > 0 && (
+      <section class="section" aria-label="Portfolio statistics">
+        <div class="wrap">
+          <ul class="stats-strip reveal" role="list">
+            {stats.map((stat) => (
+              <li class="stat-item">
+                <div class="stat-value-row">
+                  <span class="stat-value">{stat.value}</span>
+                  {stat.note && <span class="stat-badge">{stat.note}</span>}
+                </div>
+                <span class="stat-label">{stat.label}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <!-- Section Giới thiệu (Round 03.5: Identity, Introduction, Experience & Skills) -->
+  <section class="section profile" id="about" aria-labelledby="about-title">
+    <div class="wrap">
+      <div class="profile-layout">
+        <div class="profile-bio reveal">
+          <p class="eyebrow">{introduction.headline}</p>
+          <h2 class="profile-name" id="about-title">
+            {identity.name} <span class="profile-role">· {identity.role}</span>
+          </h2>
+          <p class="profile-lead">
+            {introduction.body}
+          </p>
+
+          {experience.fields.length > 0 && (
+            <div class="info-group">
+              <h3 class="info-title">{experience.headline}</h3>
+              <ul class="pill-list" role="list">
+                {experience.fields.map((field) => (
+                  <li class="pill-item glass">{field}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div class="profile-capabilities reveal">
+          {skills.categories.length > 0 && (
+            <div class="info-group">
+              <h3 class="info-title">{skills.headline}</h3>
+              <ul class="skill-stack" role="list">
+                {skills.categories.map((cat) => (
+                  <li class="skill-row">
+                    <span class="skill-label">{cat.label}</span>
+                    <span class="skill-name">{cat.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {skills.tools.length > 0 && (
+            <div class="info-group">
+              <h3 class="info-title">Công cụ phần mềm</h3>
+              <ul class="tool-list" role="list">
+                {skills.tools.map((tool) => (
+                  <li class="tool-badge glass">{tool}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section Liên hệ (Round 03.5: Contact & Google Drive link) -->
+  <section class="section contact-section" id="contact" aria-labelledby="contact-title">
+    <div class="wrap">
+      <div class="contact-card glass reveal">
+        <div class="contact-head">
+          <p class="eyebrow">{personality.contact.eyebrow}</p>
+          <h2 class="contact-headline" id="contact-title">{contact.headline}</h2>
+          {contact.subline && <p class="contact-subline">{contact.subline}</p>}
+        </div>
+
+        <div class="contact-body">
+          {hasEmail && (
+            <div class="contact-actions">
+              <a
+                class="primary-btn"
+                href={`mailto:${contact.email}`}
+                data-event="contact_click"
+                data-event-target="contact_primary"
+              >
+                <span>{personality.contact.primaryCtaLabel}</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"></path></svg>
+              </a>
+              <a
+                class="email-link"
+                href={`mailto:${contact.email}`}
+                data-event="contact_click"
+                data-event-target="contact_email"
+              >
+                {contact.email}
+              </a>
+            </div>
+          )}
+
+          <GoogleDriveButton sourceContext="contact" />
+
+          {realSocials.length > 0 && (
+            <ul class="socials" role="list">
+              {realSocials.map((s) => (
+                <li>
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    data-event="contact_click"
+                    data-event-target={`social_${s.label.toLowerCase()}`}
+                  >
+                    {s.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .collection-grid {
+    display: grid;
+    gap: var(--gap);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (min-width: 734px) {
+    .collection-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .collection-grid .wide {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Profile & About Section */
+  .profile {
+    padding-block: clamp(60px, 9vw, 120px) 0;
+  }
+  .profile-layout {
+    display: grid;
+    gap: 48px;
+    align-items: start;
+  }
+  @media (min-width: 960px) {
+    .profile-layout {
+      grid-template-columns: 1.25fr 1fr;
+      gap: 80px;
+    }
+  }
+
+  .profile-name {
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    line-height: 1.1;
+    letter-spacing: var(--tracking-snug);
+    margin: 8px 0 16px;
+  }
+  .profile-role {
+    color: var(--fg-2);
+    font-weight: 500;
+  }
+  .profile-lead {
+    font-size: var(--fs-lead);
+    line-height: 1.42;
+    color: var(--fg-2);
+    letter-spacing: -0.015em;
+    max-width: 38ch;
+    text-wrap: pretty;
+  }
+
+  .info-group {
+    margin-top: 36px;
+    display: grid;
+    gap: 14px;
+  }
+  .info-title {
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--fg-3);
+  }
+
+  .pill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .pill-item {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--fg);
+    padding: 8px 16px;
+    border-radius: var(--r-pill);
+    letter-spacing: -0.01em;
+  }
+
+  .skill-stack {
+    display: grid;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .skill-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 12px 18px;
+    border-radius: var(--r-sm);
+    background: rgb(255 255 255 / 0.02);
+    border: 1px solid var(--hairline);
+  }
+  .skill-name {
+    font-size: var(--fs-body);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--fg);
+  }
+  .skill-label {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+  }
+
+  .tool-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .tool-badge {
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--fg-2);
+    padding: 6px 14px;
+    border-radius: var(--r-xs);
+    letter-spacing: -0.01em;
+  }
+
+  /* Contact Section */
+  .contact-section {
+    padding-block: clamp(60px, 9vw, 120px) var(--section);
+  }
+  .contact-card {
+    padding: clamp(32px, 5vw, 64px);
+    border-radius: var(--r-lg);
+    display: grid;
+    gap: 32px;
+  }
+  @media (min-width: 960px) {
+    .contact-card {
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      gap: 64px;
+    }
+  }
+
+  .contact-headline {
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    line-height: 1.08;
+    letter-spacing: var(--tracking-snug);
+    margin: 8px 0 12px;
+  }
+  .contact-subline {
+    font-size: var(--fs-body);
+    color: var(--fg-2);
+    line-height: 1.45;
+    max-width: 38ch;
+  }
+
+  .contact-body {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .contact-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 20px;
+  }
+  .email-link {
+    font-size: var(--fs-body);
+    font-weight: 500;
+    color: var(--fg-2);
+    transition: color var(--dur-fast) ease;
+    word-break: break-word;
+  }
+  .email-link:hover {
+    color: var(--fg);
+  }
+
+  .socials {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 20px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--fs-sm);
+    color: var(--fg-3);
+  }
+  .socials a {
+    transition: color var(--dur-fast) ease;
+  }
+  .socials a:hover {
+    color: var(--fg);
+  }
+</style>

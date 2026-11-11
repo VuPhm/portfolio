@@ -1,0 +1,512 @@
+/*
+ * Design system — Round 02
+ * Apple-inspired product showcase: neutral near-black stage, system typography,
+ * systematic radii, light "liquid glass" reserved for floating chrome only.
+ *
+ * Tailwind is used for its modern reset (preflight) only; components use scoped CSS
+ * driven by the tokens below.
+ */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/preflight.css' layer(base);
+
+:root {
+  color-scheme: dark;
+
+  /* Colour — the footage provides the colour, the UI stays neutral */
+  --bg: #000;
+  --surface: #0f0f10;
+  --surface-2: #1a1a1c;
+  --fg: #f5f5f7;
+  --fg-2: #a1a1a6;
+  --fg-3: #6e6e73;
+  --hairline: rgb(255 255 255 / 0.08);
+
+  /* Type — system stack first (SF Pro on Apple devices) */
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif;
+  --fs-hero: clamp(3rem, 8.5vw, 7.5rem);
+  --fs-h1: clamp(2.5rem, 6vw, 5rem);
+  --fs-h2: clamp(1.75rem, 3.6vw, 3rem);
+  --fs-h3: clamp(1.25rem, 1.8vw, 1.75rem);
+  --fs-lead: clamp(1.1875rem, 1.6vw, 1.5rem);
+  --fs-body: 1.0625rem; /* 17px */
+  --fs-sm: 0.875rem;
+  --fs-xs: 0.75rem;
+  --tracking-tight: -0.035em;
+  --tracking-snug: -0.022em;
+
+  /* Radii — one family, applied consistently */
+  --r-xs: 10px;
+  --r-sm: 14px;
+  --r-md: 20px;
+  --r-lg: 28px;
+  --r-xl: 36px;
+  --r-pill: 999px;
+
+  /* Layout */
+  --max: 1440px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --gap: clamp(12px, 1.6vw, 24px);
+  --section: clamp(72px, 11vw, 160px);
+  --nav-h: 52px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-sheet: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-fast: 0.2s;
+  --dur: 0.45s;
+  --dur-slow: 0.8s;
+}
+
+html {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font);
+  font-size: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(var(--nav-h) + 32px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  font-size: var(--fs-body);
+  line-height: 1.47;
+  letter-spacing: -0.01em;
+  overflow-x: clip;
+}
+
+main {
+  flex: 1;
+}
+
+::selection {
+  background: rgb(255 255 255 / 0.9);
+  color: #000;
+}
+
+:focus-visible {
+  outline: 2px solid var(--fg);
+  outline-offset: 3px;
+  border-radius: var(--r-xs);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+img,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+/* ------------------------------------------------------------------ */
+/* Layout primitives                                                   */
+/* ------------------------------------------------------------------ */
+.wrap {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.section {
+  padding-block: var(--section) 0;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px 24px;
+  margin-bottom: clamp(24px, 3.2vw, 44px);
+}
+
+.section-intro {
+  display: grid;
+  gap: 6px;
+  max-width: 58ch;
+}
+
+.section-title {
+  font-size: var(--fs-h2);
+  font-weight: 600;
+  line-height: 1.06;
+  letter-spacing: var(--tracking-snug);
+  text-wrap: balance;
+}
+
+.section-subline {
+  font-size: var(--fs-lead);
+  color: var(--fg-2);
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+  text-wrap: pretty;
+}
+
+.link-more {
+  font-size: var(--fs-body);
+  color: var(--fg-2);
+  white-space: nowrap;
+  transition: color var(--dur-fast) ease;
+}
+.link-more:hover {
+  color: var(--fg);
+}
+.link-more::after {
+  content: ' ›';
+}
+
+.eyebrow {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--fg-2);
+  letter-spacing: -0.005em;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.skip-link:focus {
+  position: fixed !important;
+  top: 12px;
+  left: 12px;
+  width: auto;
+  height: auto;
+  clip: auto;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: var(--r-pill);
+  background: var(--fg);
+  color: #000;
+}
+
+/* ------------------------------------------------------------------ */
+/* Media frame — every thumbnail / poster goes through this            */
+/* ------------------------------------------------------------------ */
+.media {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: var(--r, var(--r-md));
+  background: var(--surface-2);
+  /* own compositing layer keeps rounded corners clipped while children scale (Safari) */
+  transform: translateZ(0);
+}
+.media > img,
+.media > video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.media::after {
+  /* hairline inner edge so dark posters don't bleed into the page */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  pointer-events: none;
+  z-index: 2;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .media > img {
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .lift:hover .media > img,
+  .lift:hover .media > video {
+    transform: scale(1.035);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Liquid glass — floating chrome only (nav, controls, menus)          */
+/* ------------------------------------------------------------------ */
+.glass {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.02) 55%),
+    rgb(30 30 32 / 0.55);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.16),
+    inset 0 -1px 0 rgb(255 255 255 / 0.03),
+    0 10px 30px rgb(0 0 0 / 0.35);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: rgb(30 30 32 / 0.94);
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  .glass {
+    background: rgb(30 30 32);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+.glass-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--fg);
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) ease;
+}
+.glass-btn:active {
+  transform: scale(0.96);
+}
+.glass-btn.icon {
+  width: 44px;
+  padding: 0;
+}
+.glass-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Solid light pill CTA for primary conversion actions */
+.primary-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: var(--r-pill);
+  background: var(--fg);
+  color: #000;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) ease,
+    opacity var(--dur-fast) ease;
+}
+.primary-btn:hover {
+  background: #fff;
+  opacity: 0.92;
+}
+.primary-btn:active {
+  transform: scale(0.96);
+}
+.primary-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Minimal Statistics Strip (Big numbers, small labels, no boxes)      */
+/* ------------------------------------------------------------------ */
+.stats-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: clamp(28px, 5vw, 72px);
+  padding-block: clamp(28px, 4vw, 48px);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  list-style: none;
+  margin: 0;
+  padding-inline: 0;
+}
+.stat-item {
+  display: grid;
+  gap: 4px;
+}
+.stat-value-row {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.stat-value {
+  font-size: clamp(2rem, 4.2vw, 3.5rem);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: var(--tracking-tight);
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+.stat-badge {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.1);
+  color: var(--fg-2);
+}
+.stat-label {
+  font-size: var(--fs-sm);
+  color: var(--fg-2);
+  letter-spacing: -0.005em;
+}
+
+/* ------------------------------------------------------------------ */
+/* Subtle Contextual Conversion Bar                                    */
+/* ------------------------------------------------------------------ */
+.context-cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px 24px;
+  padding-block: clamp(28px, 4vw, 44px);
+  border-top: 1px solid var(--hairline);
+}
+.context-cta-prompt {
+  font-size: var(--fs-lead);
+  font-weight: 500;
+  color: var(--fg-2);
+  letter-spacing: -0.015em;
+}
+.context-cta-link {
+  font-size: var(--fs-lead);
+  font-weight: 600;
+  color: var(--fg);
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+  transition: opacity var(--dur-fast) ease;
+}
+.context-cta-link:hover {
+  opacity: 0.8;
+}
+.context-cta-link::after {
+  content: ' ›';
+}
+
+/* ------------------------------------------------------------------ */
+/* Motion                                                               */
+/* ------------------------------------------------------------------ */
+
+/* Subtle scroll reveal — pure CSS, only where scroll-driven animations exist. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 28%;
+    }
+  }
+}
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Minimal page transitions (cross-document View Transitions). */
+@media (prefers-reduced-motion: no-preference) {
+  @view-transition {
+    navigation: auto;
+  }
+  ::view-transition-old(root) {
+    animation: vt-fade-out 0.22s var(--ease-out) both;
+  }
+  ::view-transition-new(root) {
+    animation: vt-fade-in 0.36s var(--ease-out) both;
+  }
+  ::view-transition-group(*) {
+    animation-duration: 0.5s;
+    animation-timing-function: var(--ease-sheet);
+  }
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Secondary External Library Link — Apple-inspired, discrete */
+.external-library-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: clamp(32px, 5vw, 64px);
+  margin-bottom: clamp(16px, 3vw, 32px);
+}
+
+.external-library-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: var(--r-pill);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--fg-2);
+  text-decoration: none;
+  transition: color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.external-library-link:hover {
+  color: var(--fg);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.external-library-link .icon-drive {
+  width: 17px;
+  height: 15px;
+  flex: none;
+}
+
+.external-library-link .icon-ext {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  stroke-width: 2;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.external-library-link:hover .icon-ext {
+  opacity: 1;
+}

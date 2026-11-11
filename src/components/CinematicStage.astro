@@ -1,0 +1,296 @@
+---
+/**
+ * Cinematic Hero Stage — Apple Product Showcase × iOS 27 Autonomous AI Stage.
+ * - Minimalist floating 3-panel triptych with optical depth and obsidian atmosphere.
+ * - Dedicated AI ambient loop and high-fidelity WebP posters for Desktop and Mobile.
+ * - Zero dependency on portfolio work footage or video catalog mockups.
+ * - Fully responsive, 0 CLS, accessible, respectful of reduced-motion and Save-Data.
+ */
+import type { VideoItem } from '../lib/content';
+import { siteConfig } from '../data/site';
+
+interface Props {
+  video?: VideoItem;
+  headline?: string;
+  headlineAccent?: string;
+  subline?: string;
+}
+
+const {
+  headline = siteConfig.name,
+  headlineAccent = siteConfig.role,
+  subline = siteConfig.personality.hero.subline || 'Biên tập video.',
+} = Astro.props;
+
+const { cta } = siteConfig.personality;
+---
+
+<section class="hero" aria-label="Giới thiệu VUPHM">
+  <div class="hero-media">
+    <picture>
+      <source media="(max-width: 767px)" srcset="/hero/hero-poster-mobile.webp" width="1080" height="1920" />
+      <img
+        class="poster"
+        src="/hero/hero-poster-desktop.webp"
+        alt={`${headline} — ${headlineAccent}`}
+        width="1920"
+        height="1080"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+
+    <video
+      data-ambient
+      data-src="/hero/hero-ambient-desktop.mp4"
+      data-src-mobile="/hero/hero-ambient-mobile.mp4"
+      width="1920"
+      height="1080"
+      muted
+      loop
+      playsinline
+      preload="none"
+      poster="/hero/hero-poster-desktop.webp"
+      aria-hidden="true"
+    />
+
+    <div class="shade" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+  </div>
+
+  <div class="hero-copy wrap">
+    <div class="headline-block">
+      <h1>
+        <span class="line-primary">{headline}</span>
+        {headlineAccent && <span class="line-accent">{headlineAccent}</span>}
+      </h1>
+      {subline && <p class="subline">{subline}</p>}
+    </div>
+
+    <div class="hero-actions">
+      <a
+        class="primary-btn"
+        href="#collections"
+        data-event="view_collection"
+        data-event-target="collections_section"
+        data-event-label={cta.heroPrimaryLabel}
+      >
+        <span>{cta.heroPrimaryLabel}</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="m6 9 6 6 6-6" />
+        </svg>
+      </a>
+      <a
+        class="glass glass-btn"
+        href="/#contact"
+        data-event="contact_click"
+        data-event-target="hero"
+      >
+        <span>{cta.heroSecondaryLabel}</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    const v = document.querySelector('.hero video[data-ambient]');
+    if (!v) return;
+    const isMobile = window.matchMedia('(max-width: 767px)').matches;
+    if (isMobile) {
+      v.dataset.src = '/hero/hero-ambient-mobile.mp4';
+      v.poster = '/hero/hero-poster-mobile.webp';
+      v.setAttribute('width', '1080');
+      v.setAttribute('height', '1920');
+    } else {
+      v.dataset.src = '/hero/hero-ambient-desktop.mp4';
+      v.poster = '/hero/hero-poster-desktop.webp';
+      v.setAttribute('width', '1920');
+      v.setAttribute('height', '1080');
+    }
+  })();
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    height: 100svh;
+    min-height: 580px;
+    max-height: 1120px;
+    display: flex;
+    align-items: flex-end;
+    overflow: hidden;
+    background: #06070a;
+  }
+
+  .hero-media {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    transform-origin: 50% 30%;
+    will-change: transform;
+    transform: translateZ(0);
+    contain: paint layout;
+  }
+
+  .hero-media picture,
+  .hero-media img,
+  .hero-media video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .hero-media video {
+    transform: translateZ(0);
+  }
+
+  /* When video is playing, immediately pause & hide poster to release GPU memory & compositor overhead */
+  .hero-media.has-video-playing picture,
+  .hero-media.has-video-playing .poster {
+    opacity: 0 !important;
+    animation: none !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+
+  .shade {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgb(6 7 10 / 0.45) 0%, rgb(6 7 10 / 0) 24%),
+      linear-gradient(to top, #06070a 0%, rgb(6 7 10 / 0.72) 28%, rgb(6 7 10 / 0) 62%);
+  }
+
+  .vignette {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 45%, transparent 40%, rgb(6 7 10 / 0.35) 90%);
+  }
+
+  .hero-copy {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 28px 40px;
+    padding-bottom: clamp(36px, 6vw, 76px);
+  }
+
+  h1 {
+    font-size: var(--fs-hero);
+    font-weight: 600;
+    line-height: 0.96;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .line-primary {
+    display: block;
+    color: #fff;
+    text-shadow: 0 2px 20px rgb(0 0 0 / 0.4);
+  }
+
+  .line-accent {
+    display: block;
+    color: rgb(245 245 247 / 0.68);
+    font-weight: 400;
+    margin-top: 4px;
+  }
+
+  .subline {
+    margin-top: 14px;
+    font-size: var(--fs-lead);
+    color: var(--fg-2);
+    letter-spacing: -0.015em;
+    max-width: 42ch;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .poster {
+      animation: hero-drift 26s ease-in-out infinite alternate;
+    }
+    .headline-block,
+    .hero-actions {
+      animation: rise 1.05s var(--ease-out) both;
+    }
+    .hero-actions {
+      animation-delay: 0.14s;
+    }
+
+    @supports (animation-timeline: scroll()) {
+      .hero-media {
+        animation: hero-depth linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 100svh;
+      }
+      .hero-copy {
+        animation: hero-copy-out linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 60svh;
+      }
+    }
+  }
+
+  @keyframes hero-drift {
+    from {
+      transform: scale(1.01);
+    }
+    to {
+      transform: scale(1.05) translate3d(-0.8%, -0.5%, 0);
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+  }
+
+  @keyframes hero-depth {
+    to {
+      transform: scale(0.96);
+      opacity: 0.45;
+    }
+  }
+
+  @keyframes hero-copy-out {
+    to {
+      opacity: 0;
+      transform: translateY(-40px);
+    }
+  }
+
+  @media (max-width: 733px) {
+    .hero {
+      height: 90svh;
+      min-height: 540px;
+    }
+    .hero-copy {
+      gap: 20px;
+      padding-bottom: 32px;
+    }
+    .hero-actions {
+      width: 100%;
+    }
+    .hero-actions .primary-btn,
+    .hero-actions .glass-btn {
+      flex: 1 1 calc(50% - 7px);
+      justify-content: center;
+      text-align: center;
+    }
+  }
+</style>

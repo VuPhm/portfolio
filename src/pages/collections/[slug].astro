@@ -1,0 +1,302 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import VideoGrid from '../../components/VideoGrid.astro';
+import GoogleDriveButton from '../../components/GoogleDriveButton.astro';
+import { siteConfig, hasRealContactEmail } from '../../data/site';
+import {
+  getCollections,
+  getVideos,
+  videosIn,
+  KIND_LABEL,
+  countLabel,
+  resolveCollectionTagline,
+  buildCollectionStats,
+  type CollectionItem,
+  type VideoItem,
+} from '../../lib/content';
+
+export async function getStaticPaths() {
+  const [collections, allVideos] = await Promise.all([getCollections(), getVideos()]);
+
+  return collections.map((collection, index) => {
+    const nextCollection = collections[(index + 1) % collections.length];
+    return {
+      params: { slug: collection.id },
+      props: {
+        collection,
+        videos: videosIn(collection.id, allVideos),
+        nextCollection: collections.length > 1 ? nextCollection : undefined,
+      },
+    };
+  });
+}
+
+interface Props {
+  collection: CollectionItem;
+  videos: VideoItem[];
+  nextCollection?: CollectionItem;
+}
+
+const { collection, videos, nextCollection } = Astro.props;
+const d = collection.data;
+const heroMedia = d.hero ?? d.cover;
+const tagline = resolveCollectionTagline(collection);
+const metaParts = [
+  KIND_LABEL[d.kind].one,
+  d.year,
+  videos.length > 0 ? countLabel(videos.length) : undefined,
+].filter(Boolean);
+const stats = buildCollectionStats(collection, videos);
+const { cta } = siteConfig.personality;
+const hasEmail = hasRealContactEmail(siteConfig.contact.email);
+const mailSubject = encodeURIComponent(`Trao đổi về bộ sưu tập: ${d.title}`);
+const contactHref = hasEmail
+  ? `mailto:${siteConfig.contact.email}?subject=${mailSubject}`
+  : '/#contact';
+---
+
+<BaseLayout
+  title={`${d.title} — ${siteConfig.siteTitle}`}
+  description={tagline ?? `${d.title} (${KIND_LABEL[d.kind].one})`}
+  ogImage={heroMedia.src}
+  preloadImage={heroMedia.src}
+  noindex={d.demo}
+>
+  <article class="page wrap">
+    <nav class="back-row" aria-label="Breadcrumb">
+      <a class="back-link" href="/works">‹ Tác phẩm</a>
+    </nav>
+
+    <div class="hero-stage media" style={`view-transition-name: collection-${collection.id}`}>
+      <img
+        src={heroMedia.src}
+        alt={heroMedia.alt || d.title}
+        width="1600"
+        height="1000"
+        fetchpriority="high"
+        decoding="async"
+      />
+      {
+        d.heroVideo && (
+          <video
+            data-ambient
+            data-src={d.heroVideo}
+            width="1600"
+            height="1000"
+            muted
+            loop
+            playsinline
+            preload="none"
+            poster={heroMedia.src}
+            aria-hidden="true"
+          />
+        )
+      }
+      <div class="scrim" aria-hidden="true"></div>
+      <div class="hero-copy">
+        <div class="hero-text">
+          <p class="eyebrow">{metaParts.join(' · ')}</p>
+          <h1>{d.title}</h1>
+          {tagline && <p class="tagline">{tagline}</p>}
+        </div>
+        {
+          d.url && (
+            <a class="glass glass-btn" href={d.url} target="_blank" rel="noopener noreferrer">
+              <span>Xem {KIND_LABEL[d.kind].one.toLowerCase()}</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9" /></svg>
+            </a>
+          )
+        }
+      </div>
+    </div>
+
+    {
+      stats.length > 0 && (
+        <ul class="stats-strip collection-stats" role="list" aria-label="Collection overview">
+          {stats.map((stat) => (
+            <li class="stat-item">
+              <div class="stat-value-row">
+                <span class="stat-value">{stat.value}</span>
+                {stat.note && <span class="stat-badge">{stat.note}</span>}
+              </div>
+              <span class="stat-label">{stat.label}</span>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <section class="gallery-section" aria-label={`Video trong ${d.title}`}>
+      <VideoGrid videos={videos} group={`collection-${collection.id}`} eagerCount={4} />
+
+      <GoogleDriveButton sourceContext={`collection_${collection.id}`} />
+    </section>
+
+    <aside class="context-cta reveal" aria-label="Trao đổi dự án">
+      <p class="context-cta-prompt">{cta.collectionContextPrompt}</p>
+      <a
+        class="context-cta-link"
+        href={contactHref}
+        data-event="contact_click"
+        data-event-target={`collection_${collection.id}`}
+      >
+        {cta.collectionContextAction}
+      </a>
+    </aside>
+
+    {
+      nextCollection && (
+        <footer class="next-nav">
+          <a
+            class="next-card lift"
+            href={`/collections/${nextCollection.id}`}
+            data-event="view_collection"
+            data-event-target={nextCollection.id}
+            data-event-label={nextCollection.data.title}
+          >
+            <div>
+              <p class="eyebrow">Bộ sưu tập tiếp theo</p>
+              <p class="next-title">{nextCollection.data.title} ›</p>
+              {resolveCollectionTagline(nextCollection) && (
+                <p class="next-tagline">{resolveCollectionTagline(nextCollection)}</p>
+              )}
+            </div>
+            <div class="next-thumb media">
+              <img
+                src={nextCollection.data.cover.src}
+                alt={nextCollection.data.cover.alt || nextCollection.data.title}
+                width="320"
+                height="200"
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+          </a>
+        </footer>
+      )
+    }
+  </article>
+</BaseLayout>
+
+<style>
+  .page {
+    padding-top: calc(var(--nav-h) + clamp(32px, 5vw, 64px));
+  }
+
+  .back-row {
+    margin-bottom: 16px;
+  }
+
+  .back-link {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+    transition: color var(--dur-fast) ease;
+  }
+
+  .back-link:hover {
+    color: var(--fg);
+  }
+
+  .hero-stage {
+    --r: var(--r-xl);
+    aspect-ratio: 4 / 3;
+    max-height: 620px;
+    width: 100%;
+  }
+
+  @media (min-width: 734px) {
+    .hero-stage {
+      aspect-ratio: 21 / 9;
+    }
+  }
+
+  .scrim {
+    position: absolute;
+    inset: 28% 0 0 0;
+    background: linear-gradient(to bottom, rgb(0 0 0 / 0), rgb(0 0 0 / 0.74));
+    z-index: 1;
+  }
+
+  .hero-copy {
+    position: absolute;
+    inset: auto 0 0 0;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding: clamp(24px, 4vw, 52px);
+  }
+
+  .hero-text {
+    display: grid;
+    gap: 6px;
+  }
+
+  .hero-text .eyebrow {
+    color: rgb(255 255 255 / 0.76);
+  }
+
+  h1 {
+    font-size: var(--fs-h1);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: var(--tracking-tight);
+  }
+
+  .tagline {
+    margin-top: 2px;
+    font-size: var(--fs-lead);
+    color: rgb(245 245 247 / 0.8);
+    max-width: 44ch;
+  }
+
+  .collection-stats {
+    margin-top: clamp(28px, 4vw, 48px);
+    padding-block: clamp(20px, 2.8vw, 32px);
+  }
+  .collection-stats .stat-value {
+    font-size: clamp(1.5rem, 2.8vw, 2.25rem);
+  }
+
+  .gallery-section {
+    margin-top: clamp(44px, 5.5vw, 80px);
+  }
+
+  .context-cta {
+    margin-top: clamp(56px, 7vw, 96px);
+  }
+
+  .next-nav {
+    padding-top: clamp(32px, 4vw, 56px);
+    border-top: 1px solid var(--hairline);
+  }
+
+  .next-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  .next-title {
+    margin-top: 4px;
+    font-size: var(--fs-h2);
+    font-weight: 600;
+    letter-spacing: var(--tracking-snug);
+  }
+
+  .next-tagline {
+    margin-top: 4px;
+    font-size: var(--fs-body);
+    color: var(--fg-2);
+  }
+
+  .next-thumb {
+    width: clamp(120px, 18vw, 200px);
+    aspect-ratio: 16 / 10;
+    --r: var(--r-sm);
+    flex: none;
+  }
+</style>

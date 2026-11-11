@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+
+# Astro build & generated types
+dist/
+.astro/
+.wrangler/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# macOS / Editor
+.DS_Store
+*.swp
+.vscode/
+.idea/
+
+# Raw / large video files & local media workspace — never commit heavy video binaries or R2 credentials to Git.
+# Host videos on YouTube, Vimeo, Cloudflare R2, or keep raw master files in Google Drive / local storage outside Git.
+public/media/videos/*.mp4
+public/media/videos/*.mov
+public/media/videos/*.m4v
+public/media/videos/*.webm
+public/media/videos/*.mkv
+public/media/videos/*.avi
+content-intake/raw/
+media-workspace/
+config/r2.config.local.json
+*.r2.secret*
+*.mp4
+*.mov
+*.m4v
+*.mkv
+*.avi
+

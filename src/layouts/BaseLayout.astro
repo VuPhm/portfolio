@@ -1,0 +1,249 @@
+---
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import PlayerDialog from '../components/PlayerDialog.astro';
+import { siteConfig } from '../data/site';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  /** Preload the LCP image (hero poster). */
+  preloadImage?: string;
+  /** Prevent search engine indexing on 404 or demo preview pages. */
+  noindex?: boolean;
+}
+
+const {
+  title = siteConfig.siteTitle,
+  description = siteConfig.description,
+  ogImage = '/media/og.svg',
+  preloadImage,
+  noindex = false,
+} = Astro.props;
+
+const site = Astro.site ?? new URL(siteConfig.url);
+const canonicalURL = new URL(Astro.url.pathname, site);
+const mediaBaseUrl = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
+  ?.PUBLIC_MEDIA_BASE_URL;
+const preconnectMediaOrigin =
+  mediaBaseUrl && /^https?:\/\//i.test(mediaBaseUrl) && !mediaBaseUrl.includes('example.com')
+    ? new URL(mediaBaseUrl).origin
+    : undefined;
+---
+
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#000000" />
+    <meta name="color-scheme" content="dark" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex" />}
+    <link rel="canonical" href={canonicalURL} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
+    {preconnectMediaOrigin && <link rel="preconnect" href={preconnectMediaOrigin} crossorigin />}
+    {preloadImage && <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />}
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={new URL(ogImage, site)} />
+    <meta name="twitter:card" content="summary_large_image" />
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link visually-hidden">Chuyển đến nội dung chính</a>
+    <Header currentPath={Astro.url.pathname} />
+    <main id="main-content">
+      <slot />
+    </main>
+    <Footer />
+    <PlayerDialog />
+
+    <script>
+      /**
+       * Ambient & hover media (Round 03.1) — poster-first, bandwidth & battery aware:
+       *  - Poster image ALWAYS loads before any ambient or hover preview video is fetched.
+       *  - `video[data-ambient]` plays muted loops only when visible in viewport, never with
+       *    `prefers-reduced-motion: reduce`, `Save-Data`, or slow 2G connections.
+       *  - `[data-preview]` cards load a short (3–8s) muted loop on intentional hover (`110ms`),
+       *    strictly on desktop fine-pointer devices (`(hover: hover) and (pointer: fine)`), never on mobile.
+       *  - Only one hover preview plays at a time; no upfront video preloading.
+       */
+      interface NetworkInformationLike {
+        saveData?: boolean;
+        effectiveType?: string;
+      }
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+      const mobileViewport = window.matchMedia('(max-width: 767px)');
+
+      const isConstrainedNetwork = () => {
+        const conn = (navigator as Navigator & { connection?: NetworkInformationLike }).connection;
+        if (!conn) return false;
+        if (conn.saveData === true) return true;
+        return conn.effectiveType === 'slow-2g' || conn.effectiveType === '2g';
+      };
+
+      const motionOK = () => !reduceMotion.matches && !isConstrainedNetwork();
+      const hoverPreviewOK = () => finePointer.matches && !mobileViewport.matches && motionOK();
+
+      function ensurePosterReady(img: HTMLImageElement | null, callback: () => void) {
+        if (!img || (img.complete && img.naturalWidth > 0)) {
+          callback();
+          return;
+        }
+        img.addEventListener('load', callback, { once: true });
+      }
+
+      // 1. Ambient hero loops (`video[data-ambient]`)
+      const ambient = document.querySelectorAll<HTMLVideoElement>('video[data-ambient]');
+      if (ambient.length && 'IntersectionObserver' in window) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const { target, isIntersecting } of entries) {
+              const v = target as HTMLVideoElement;
+              if (isIntersecting && motionOK()) {
+                const posterImg = v.parentElement?.querySelector<HTMLImageElement>('img');
+                ensurePosterReady(posterImg ?? null, () => {
+                  if (!motionOK()) return;
+                  if (!v.src && v.dataset.src) {
+                    v.src = v.dataset.src;
+                  }
+                  v.play()
+                    .then(() => {
+                      v.classList.add('is-playing');
+                      v.parentElement?.classList.add('has-video-playing');
+                    })
+                    .catch(() => {});
+                });
+              } else {
+                v.classList.remove('is-playing');
+                v.parentElement?.classList.remove('has-video-playing');
+                v.pause();
+              }
+            }
+          },
+          { threshold: 0.15 }
+        );
+        ambient.forEach((v) => io.observe(v));
+        reduceMotion.addEventListener('change', () => {
+          ambient.forEach((v) => {
+            if (motionOK() && v.src) {
+              v.play()
+                .then(() => v.classList.add('is-playing'))
+                .catch(() => {});
+            } else {
+              v.classList.remove('is-playing');
+              v.pause();
+            }
+          });
+        });
+      }
+
+      // 2. Card hover previews (`[data-preview]`) — desktop fine pointer only, poster-first, 110ms intent debounce
+      let activeHoverVideo: HTMLVideoElement | null = null;
+      for (const card of document.querySelectorAll<HTMLElement>('[data-preview]')) {
+        const src = card.dataset.preview?.trim();
+        const frame = card.querySelector<HTMLElement>('.media');
+        if (!src || !frame || /\.gif(\?.*)?$/i.test(src)) continue;
+
+        let video: HTMLVideoElement | null = null;
+        let hoverTimer: number | null = null;
+        let isHovered = false;
+
+        const stopPreview = () => {
+          isHovered = false;
+          if (hoverTimer !== null) {
+            window.clearTimeout(hoverTimer);
+            hoverTimer = null;
+          }
+          if (video) {
+            video.classList.remove('is-playing');
+            video.pause();
+            if (activeHoverVideo === video) activeHoverVideo = null;
+          }
+        };
+
+        card.addEventListener('pointerenter', (e) => {
+          if (e.pointerType && e.pointerType !== 'mouse' && e.pointerType !== 'pen') return;
+          if (!hoverPreviewOK()) return;
+          isHovered = true;
+          const posterImg = frame.querySelector<HTMLImageElement>('img');
+
+          hoverTimer = window.setTimeout(() => {
+            if (!isHovered || !hoverPreviewOK()) return;
+            ensurePosterReady(posterImg, () => {
+              if (!isHovered || !hoverPreviewOK()) return;
+
+              if (activeHoverVideo && activeHoverVideo !== video) {
+                activeHoverVideo.classList.remove('is-playing');
+                activeHoverVideo.pause();
+              }
+
+              if (!video) {
+                const isPortrait = card.dataset.orientation === 'portrait';
+                video = document.createElement('video');
+                video.muted = true;
+                video.defaultMuted = true;
+                video.loop = true;
+                video.playsInline = true;
+                video.preload = 'metadata';
+                video.width = isPortrait ? 540 : 960;
+                video.height = isPortrait ? 960 : 540;
+                video.setAttribute('aria-hidden', 'true');
+                video.className = 'hover-preview';
+                video.src = src;
+                video.addEventListener('playing', () => {
+                  if (isHovered) video?.classList.add('is-playing');
+                });
+                frame.append(video);
+              }
+
+              activeHoverVideo = video;
+              video.play().catch(() => {});
+            });
+          }, 110);
+        });
+
+        card.addEventListener('pointerleave', stopPreview);
+        card.addEventListener('pointercancel', stopPreview);
+      }
+
+      // Conversion & interaction event hooks (`view_collection`, `open_video`, `contact_click`)
+      document.addEventListener('click', (e) => {
+        const el = (e.target as Element | null)?.closest<HTMLElement>('[data-event]');
+        if (!el) return;
+        const name = el.dataset.event;
+        if (!name) return;
+        window.dispatchEvent(
+          new CustomEvent('portfolio:event', {
+            detail: {
+              name,
+              target: el.dataset.eventTarget ?? el.getAttribute('href') ?? undefined,
+              label: el.dataset.eventLabel ?? undefined,
+            },
+          })
+        );
+      });
+    </script>
+
+    <style is:global>
+      .hover-preview,
+      video[data-ambient] {
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.45s ease;
+      }
+      .hover-preview.is-playing,
+      video[data-ambient].is-playing {
+        opacity: 1;
+      }
+    </style>
+  </body>
+</html>
