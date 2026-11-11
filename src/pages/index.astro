@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import CinematicStage from '../components/CinematicStage.astro';
 import CollectionCard from '../components/CollectionCard.astro';
-import VideoGrid from '../components/VideoGrid.astro';
+import EditorialVideoGrid from '../components/EditorialVideoGrid.astro';
 import ScrollStory from '../components/ScrollStory.astro';
 import EmptyState from '../components/EmptyState.astro';
 import GoogleDriveButton from '../components/GoogleDriveButton.astro';
@@ -120,7 +120,7 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
               )}
             </div>
           </div>
-          <VideoGrid videos={picks} group="selected" layout="feature" />
+          <EditorialVideoGrid videos={picks} group="selected" defaultPattern="asymmetric" />
         </div>
       </section>
     )

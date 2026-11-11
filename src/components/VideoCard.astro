@@ -3,6 +3,7 @@ import type { VideoItem } from '../lib/content';
 import { getCollectionTitles } from '../lib/content';
 import { resolvePreviewUrl } from '../lib/media';
 import { playerPayload } from '../lib/player';
+import MediaPlaceholder from './MediaPlaceholder.astro';
 
 interface Props {
   video: VideoItem;
@@ -39,12 +40,14 @@ const [w, h] = isRatio45 ? [1080, 1350] : isPortrait ? [900, 1600] : [1600, 900]
     class:list={['media', isRatio45 ? 'ratio-4-5' : isPortrait ? 'portrait' : 'landscape']}
     style={transition ? `view-transition-name: video-${video.id}` : undefined}
   >
-    <img
+    <MediaPlaceholder
       src={d.poster.src}
       alt={d.poster.alt || d.title}
+      aspectRatio={d.aspectRatio}
+      orientation={d.orientation}
       width={w}
       height={h}
-      loading={eager ? undefined : 'lazy'}
+      loading={eager ? 'eager' : 'lazy'}
       decoding="async"
     />
   </div>

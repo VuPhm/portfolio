@@ -1,0 +1,276 @@
+---
+/**
+ * CampaignShowcase — Pattern component demonstrating the future Brand → Campaign → Deliverables hierarchy.
+ *
+ * Hierarchy:
+ *  Brand (optional) ──> Campaign (optional) ──> Deliverables / Videos
+ *
+ * Allows evaluating how campaign collections will look when multi-deliverable campaigns
+ * with mixed aspect ratios (hero film + vertical shorts + behind-the-scenes) are integrated.
+ */
+import MediaPlaceholder from './MediaPlaceholder.astro';
+
+interface DeliverableMock {
+  title: string;
+  aspectRatio: '16:9' | '9:16' | '4:5';
+  role: string;
+  duration: string;
+  deliverableType: 'Key Visual' | 'Social Short' | 'Product Cut' | 'Recap';
+}
+
+interface Props {
+  brand?: string;
+  campaignTitle?: string;
+  year?: string;
+  client?: string;
+  tools?: string[];
+  description?: string;
+  deliverables?: DeliverableMock[];
+  class?: string;
+}
+
+const {
+  brand = 'VEYO',
+  campaignTitle = 'Chiến dịch Ra mắt Thương hiệu 2026',
+  year = '2026',
+  client = 'VEYO Vietnam',
+  tools = ['CapCut', 'Adobe Premiere Pro'],
+  description = 'Bộ sản phẩm biên tập hoàn chỉnh đa định dạng phục vụ chiến dịch truyền thông đa kênh.',
+  deliverables = [
+    {
+      title: 'Hero Brand Film',
+      aspectRatio: '16:9',
+      role: 'Master Cutdown & Color',
+      duration: '00:30',
+      deliverableType: 'Key Visual',
+    },
+    {
+      title: 'Short 01 — Product Motion',
+      aspectRatio: '9:16',
+      role: 'Short-form Editor',
+      duration: '00:19',
+      deliverableType: 'Social Short',
+    },
+    {
+      title: 'Short 02 — Lifestyle Hook',
+      aspectRatio: '9:16',
+      role: 'Short-form Editor',
+      duration: '00:15',
+      deliverableType: 'Social Short',
+    },
+    {
+      title: 'Feature Reel — Packaging',
+      aspectRatio: '4:5',
+      role: 'Social Cutdown',
+      duration: '00:20',
+      deliverableType: 'Product Cut',
+    },
+  ],
+  class: className = '',
+} = Astro.props;
+---
+
+<div class:list={['campaign-showcase glass', className]} data-campaign-showcase>
+  {/* Campaign Header */}
+  <header class="campaign-header">
+    <div class="brand-line">
+      <span class="brand-pill glass">{brand}</span>
+      <span class="campaign-sep">/</span>
+      <span class="campaign-client">{client}</span>
+      <span class="campaign-year">{year}</span>
+    </div>
+    <h3 class="campaign-title">{campaignTitle}</h3>
+    {description && <p class="campaign-desc">{description}</p>}
+
+    {/* Metadata tools */}
+    <div class="campaign-tools">
+      <span class="tools-label">Công cụ:</span>
+      <ul class="tools-list" role="list">
+        {tools.map((t) => (
+          <li class="tool-tag glass">{t}</li>
+        ))}
+      </ul>
+    </div>
+  </header>
+
+  {/* Deliverables Mixed-Aspect Mosaic */}
+  <div class="deliverables-grid">
+    {deliverables.map((item) => (
+      <div
+        class:list={[
+          'deliverable-card glass',
+          `aspect-${item.aspectRatio.replace(':', '-')}`,
+          { 'is-key-visual': item.deliverableType === 'Key Visual' },
+        ]}
+      >
+        <div class="deliverable-media">
+          <MediaPlaceholder
+            aspectRatio={item.aspectRatio}
+            state="missing"
+            missingLabel={`${item.deliverableType} · ${item.aspectRatio}`}
+          />
+          <span class="deliverable-type-badge glass">{item.deliverableType}</span>
+        </div>
+        <div class="deliverable-meta">
+          <div class="meta-main">
+            <span class="item-title">{item.title}</span>
+            <span class="item-role">{item.role}</span>
+          </div>
+          <span class="item-duration">{item.duration}</span>
+        </div>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .campaign-showcase {
+    padding: clamp(24px, 4vw, 40px);
+    border-radius: var(--r-xl);
+    border: 1px solid rgb(255 255 255 / 0.12);
+    background: linear-gradient(180deg, rgb(255 255 255 / 0.05) 0%, rgb(18 18 22 / 0.7) 100%);
+    display: grid;
+    gap: 28px;
+  }
+
+  .campaign-header {
+    display: grid;
+    gap: 8px;
+  }
+
+  .brand-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+  }
+
+  .brand-pill {
+    padding: 2px 10px;
+    border-radius: var(--r-pill);
+    font-weight: 600;
+    color: var(--fg);
+    letter-spacing: 0.04em;
+    background: rgb(255 255 255 / 0.1);
+  }
+
+  .campaign-year {
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .campaign-title {
+    font-size: var(--fs-h3);
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: var(--fg);
+    margin: 4px 0 0;
+  }
+
+  .campaign-desc {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+    line-height: 1.45;
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .campaign-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .tools-label {
+    font-size: var(--fs-xs);
+    color: var(--fg-3);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .tools-list {
+    display: flex;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .tool-tag {
+    font-size: 0.6875rem;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    color: var(--fg-2);
+  }
+
+  /* Deliverables Grid */
+  .deliverables-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  @media (min-width: 960px) {
+    .deliverables-grid {
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+    }
+  }
+
+  .deliverable-card {
+    border-radius: var(--r-md);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .deliverable-media {
+    position: relative;
+    border-radius: var(--r-sm);
+    overflow: hidden;
+  }
+
+  .deliverable-type-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: #fff;
+    background: rgb(0 0 0 / 0.6);
+  }
+
+  .deliverable-meta {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    font-size: var(--fs-xs);
+  }
+
+  .meta-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  .item-title {
+    font-weight: 500;
+    color: var(--fg);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .item-role {
+    color: var(--fg-3);
+    font-size: 0.6875rem;
+  }
+
+  .item-duration {
+    color: var(--fg-3);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

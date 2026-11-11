@@ -1,0 +1,394 @@
+---
+/**
+ * EditorialVideoGrid — Apple-inspired editorial showcase for featured works.
+ * Supports mixed aspect ratios (16:9 landscape, 9:16 portrait, 4:5 social).
+ *
+ * Patterns:
+ *  1. 'asymmetric' (Default): Editorial Asymmetric Grid anchored by a primary featured piece.
+ *  2. 'balanced': Harmonic Modular Grid where landscape spans 2 units and portrait spans 1 unit.
+ *
+ * Performance:
+ *  - Pure CSS Grid layout (0 heavy masonry libraries).
+ *  - Powered by MediaPlaceholder (0 CLS, skeleton states, graceful error boundaries).
+ *  - Native image decoding="async" and progressive hover preview.
+ */
+import VideoCard from './VideoCard.astro';
+import MediaPlaceholder from './MediaPlaceholder.astro';
+import type { VideoItem } from '../lib/content';
+import { siteConfig } from '../data/site';
+
+interface Props {
+  videos: VideoItem[];
+  group?: string;
+  defaultPattern?: 'asymmetric' | 'balanced';
+  showPatternSwitch?: boolean;
+  eagerCount?: number;
+}
+
+const {
+  videos,
+  group = 'featured',
+  defaultPattern = 'asymmetric',
+  showPatternSwitch = true,
+  eagerCount = 2,
+} = Astro.props;
+
+// Sort by featuredOrder if present, else original order
+const sorted = [...videos].sort((a, b) => {
+  const fa = a.data.featuredOrder ?? a.data.order;
+  const fb = b.data.featuredOrder ?? b.data.order;
+  return fa - fb || a.data.order - b.data.order;
+});
+
+const isPreview = siteConfig.demoPreview;
+---
+
+<div class="editorial-grid-container" data-editorial-grid data-pattern={defaultPattern}>
+  {/* Pattern switcher bar */}
+  {showPatternSwitch && (
+    <div class="grid-controls-row reveal">
+      <div class="pattern-switch glass" role="tablist" aria-label="Kiểu bố cục lưới">
+        <button
+          type="button"
+          role="tab"
+          class="switch-btn active"
+          data-pattern-select="asymmetric"
+          aria-selected={defaultPattern === 'asymmetric' ? 'true' : 'false'}
+          title="Bố cục Asymmetric — Tác phẩm chủ đạo nổi bật"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect width="9" height="18" x="3" y="3" rx="1.5" />
+            <rect width="7" height="8" x="14" y="3" rx="1.5" />
+            <rect width="7" height="8" x="14" y="13" rx="1.5" />
+          </svg>
+          <span>Asymmetric</span>
+        </button>
+        <button
+          type="button"
+          role="tab"
+          class="switch-btn"
+          data-pattern-select="balanced"
+          aria-selected={defaultPattern === 'balanced' ? 'true' : 'false'}
+          title="Bố cục Balanced — Phân bổ nhịp điệu cân bằng"
+        >
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+            <rect width="7" height="11" x="3" y="3" rx="1.5" />
+            <rect width="7" height="11" x="14" y="3" rx="1.5" />
+            <rect width="18" height="6" x="3" y="15" rx="1.5" />
+          </svg>
+          <span>Balanced</span>
+        </button>
+      </div>
+
+      {isPreview && (
+        <div class="preview-badge-pill glass" title="Chế độ xem trước bố cục mở rộng">
+          <span class="preview-dot"></span>
+          <span>Preview Mode</span>
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* Main Editorial Grid */}
+  <ul class="editorial-grid" role="list">
+    {sorted.map((video, idx) => {
+      const isLead = idx === 0;
+      const isLandscape = video.data.orientation === 'landscape';
+      const isRatio45 = video.data.aspectRatio === '4:5';
+
+      return (
+        <li
+          class:list={[
+            'grid-item',
+            'reveal',
+            {
+              'lead-item': isLead,
+              'landscape-item': isLandscape,
+              'ratio-45-item': isRatio45,
+              'portrait-item': !isLandscape && !isRatio45,
+            },
+          ]}
+          data-item-index={idx}
+          data-orientation={video.data.orientation}
+        >
+          <div class="card-wrap">
+            {isLead && (
+              <span class="lead-badge glass">
+                <span class="lead-spark">✦</span>
+                <span>Nổi bật</span>
+              </span>
+            )}
+            <VideoCard
+              video={video}
+              group={group}
+              eager={idx < eagerCount}
+            />
+          </div>
+        </li>
+      );
+    })}
+
+    {/* Optional Demo/Mock slot only visible in preview mode for mixed-aspect illustration */}
+    {isPreview && (
+      <li class="grid-item mock-slot-item reveal" data-mock-slot>
+        <div class="mock-card glass">
+          <MediaPlaceholder
+            aspectRatio="16:9"
+            orientation="landscape"
+            state="missing"
+            missingLabel="16:9 Mock Slot (Preview)"
+          />
+          <div class="mock-caption">
+            <span class="mock-title">Commercial Film (16:9 Slot)</span>
+            <span class="mock-badge">Demo</span>
+          </div>
+        </div>
+      </li>
+    )}
+  </ul>
+</div>
+
+<script>
+  (() => {
+    const containers = document.querySelectorAll<HTMLElement>('[data-editorial-grid]');
+    containers.forEach((container) => {
+      const buttons = container.querySelectorAll<HTMLButtonElement>('[data-pattern-select]');
+      buttons.forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const pattern = btn.dataset.patternSelect as 'asymmetric' | 'balanced';
+          if (!pattern) return;
+          container.dataset.pattern = pattern;
+          buttons.forEach((b) => {
+            const isMatch = b === btn;
+            b.classList.toggle('active', isMatch);
+            b.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+          });
+        });
+      });
+    });
+  })();
+</script>
+
+<style>
+  .editorial-grid-container {
+    display: grid;
+    gap: 24px;
+    width: 100%;
+  }
+
+  /* Pattern Switcher Row */
+  .grid-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .pattern-switch {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px;
+    border-radius: var(--r-pill);
+    background: rgb(255 255 255 / 0.05);
+    border: 1px solid var(--hairline);
+  }
+
+  .switch-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--fg-2);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+  }
+  .switch-btn:hover {
+    color: var(--fg);
+  }
+  .switch-btn.active {
+    background: rgb(255 255 255 / 0.15);
+    color: #fff;
+    box-shadow: 0 2px 10px rgb(0 0 0 / 0.3);
+  }
+
+  .preview-badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: var(--r-pill);
+    font-size: 0.75rem;
+    color: var(--fg-3);
+  }
+  .preview-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff9f0a;
+  }
+
+  /* Grid Foundation */
+  .editorial-grid {
+    display: grid;
+    gap: var(--gap);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+  }
+
+  .grid-item {
+    min-width: 0;
+    position: relative;
+  }
+
+  .card-wrap {
+    position: relative;
+    height: 100%;
+  }
+
+  .lead-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 10;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #fff;
+    background: rgb(0 0 0 / 0.55);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgb(255 255 255 / 0.2);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+    pointer-events: none;
+  }
+  .lead-spark {
+    color: #ffd60a;
+    font-size: 0.75rem;
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* PATTERN 1: Editorial Asymmetric Grid                               */
+  /* ------------------------------------------------------------------ */
+  [data-pattern='asymmetric'] .editorial-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Mobile: Lead spans 2 columns, others in 2-column shelf */
+  @media (max-width: 733px) {
+    [data-pattern='asymmetric'] .grid-item.lead-item {
+      grid-column: 1 / -1;
+    }
+    [data-pattern='asymmetric'] .grid-item.landscape-item {
+      grid-column: 1 / -1;
+    }
+  }
+
+  /* Tablet (734px - 1023px): 3 columns */
+  @media (min-width: 734px) and (max-width: 1023px) {
+    [data-pattern='asymmetric'] .editorial-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    [data-pattern='asymmetric'] .grid-item.lead-item {
+      grid-column: span 2;
+    }
+    [data-pattern='asymmetric'] .grid-item.landscape-item {
+      grid-column: span 2;
+    }
+  }
+
+  /* Desktop (>= 1024px): 4-column asymmetric balance */
+  @media (min-width: 1024px) {
+    [data-pattern='asymmetric'] .editorial-grid {
+      grid-template-columns: repeat(4, 1fr);
+      grid-auto-flow: dense;
+    }
+
+    [data-pattern='asymmetric'] .grid-item.lead-item {
+      grid-column: span 2;
+      grid-row: span 2;
+    }
+
+    /* When lead item is portrait (9:16), spanning 2 cols makes it an imposing hero poster */
+    [data-pattern='asymmetric'] .grid-item.lead-item.portrait-item :global(.media) {
+      box-shadow: 0 12px 40px rgb(0 0 0 / 0.45);
+    }
+
+    [data-pattern='asymmetric'] .grid-item.landscape-item {
+      grid-column: span 2;
+    }
+  }
+
+  /* ------------------------------------------------------------------ */
+  /* PATTERN 2: Balanced Mixed Grid                                     */
+  /* ------------------------------------------------------------------ */
+  [data-pattern='balanced'] .editorial-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-flow: dense;
+  }
+
+  @media (max-width: 733px) {
+    [data-pattern='balanced'] .grid-item.landscape-item {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 734px) and (max-width: 1023px) {
+    [data-pattern='balanced'] .editorial-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    [data-pattern='balanced'] .grid-item.landscape-item {
+      grid-column: span 2;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    [data-pattern='balanced'] .editorial-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    [data-pattern='balanced'] .grid-item.landscape-item {
+      grid-column: span 2;
+    }
+  }
+
+  /* Mock Slot Styling */
+  .mock-slot-item {
+    grid-column: span 2;
+  }
+  .mock-card {
+    padding: 8px;
+    border-radius: var(--r-md);
+  }
+  .mock-caption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 4px 4px;
+  }
+  .mock-title {
+    font-size: var(--fs-sm);
+    color: var(--fg-2);
+  }
+  .mock-badge {
+    font-size: 0.6875rem;
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    background: rgb(255 159 10 / 0.15);
+    color: #ff9f0a;
+    border: 1px solid rgb(255 159 10 / 0.25);
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+</style>

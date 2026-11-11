@@ -217,6 +217,10 @@ const videosCollection = defineCollection({
       duration: z.string().optional(),
       role: z.string().optional(),
       client: z.string().optional(),
+      brand: z.string().optional(),
+      campaign: z.string().optional(),
+      tools: z.array(z.string()).default([]),
+      featuredOrder: z.number().optional(),
       /** One or two sentences, optional. */
       description: z.string().optional(),
       /** Taxonomy tag identifiers (e.g. ['short-form', 'commercial', 'fmcg']). */

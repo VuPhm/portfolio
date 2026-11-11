@@ -1,0 +1,329 @@
+---
+/**
+ * MediaPlaceholder — Unified media placeholder, skeleton loader, and fallback system.
+ *
+ * States supported:
+ *  1. 'loading' — Subtle skeleton pulse preserving exact aspect ratio with 0 CLS.
+ *  2. 'ready'   — High-fidelity WebP poster or image with smooth transition on load.
+ *  3. 'missing' — Static dark glass slate ("Đang cập nhật") with zero unnecessary network calls.
+ *  4. 'error'   — Graceful error state with retry action, preventing default broken image icons.
+ *
+ * Performance & Accessibility:
+ *  - Native aspect-ratio container guarantees 0 Layout Shift (CLS = 0).
+ *  - Respects prefers-reduced-motion (disables skeleton shimmer).
+ *  - Zero dependency on heavy external scripts.
+ */
+
+interface Props {
+  src?: string | null;
+  alt?: string;
+  aspectRatio?: '16:9' | '9:16' | '4:5' | '1:1' | string;
+  orientation?: 'landscape' | 'portrait';
+  width?: number;
+  height?: number;
+  loading?: 'lazy' | 'eager';
+  decoding?: 'async' | 'sync' | 'auto';
+  transitionName?: string;
+  state?: 'auto' | 'loading' | 'ready' | 'missing' | 'error';
+  missingLabel?: string;
+  class?: string;
+}
+
+const {
+  src,
+  alt = '',
+  aspectRatio,
+  orientation,
+  width,
+  height,
+  loading = 'lazy',
+  decoding = 'async',
+  transitionName,
+  state = 'auto',
+  missingLabel = 'Đang cập nhật',
+  class: className = '',
+} = Astro.props;
+
+// Determine orientation and aspect ratio
+const effectiveRatio =
+  aspectRatio ||
+  (orientation === 'portrait' ? '9:16' : orientation === 'landscape' ? '16:9' : '9:16');
+
+const isRatio45 = effectiveRatio === '4:5';
+const isPortrait = effectiveRatio === '9:16' || (!isRatio45 && orientation === 'portrait');
+
+const ratioClass = isRatio45 ? 'ratio-4-5' : isPortrait ? 'ratio-9-16' : 'ratio-16-9';
+
+// Default dimension hints to eliminate CLS
+const [defaultW, defaultH] = isRatio45 ? [1080, 1350] : isPortrait ? [900, 1600] : [1600, 900];
+const finalW = width || defaultW;
+const finalH = height || defaultH;
+
+// Initial state resolution
+const isExplicitMissing = state === 'missing' || !src || src.trim().length === 0;
+const isExplicitError = state === 'error';
+const isExplicitLoading = state === 'loading';
+---
+
+<div
+  class:list={[
+    'media-placeholder-frame',
+    ratioClass,
+    {
+      'is-missing': isExplicitMissing,
+      'is-error': isExplicitError,
+      'is-loading-force': isExplicitLoading,
+    },
+    className,
+  ]}
+  style={transitionName ? `view-transition-name: ${transitionName}` : undefined}
+  data-media-placeholder
+  data-src={src || undefined}
+>
+  {/* 1. Loading Skeleton layer (visible until image loads) */}
+  {!isExplicitMissing && !isExplicitError && (
+    <div class="skeleton-layer" aria-hidden="true">
+      <div class="skeleton-shimmer"></div>
+      <div class="skeleton-icon">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="m21 15-5-5L5 21" />
+        </svg>
+      </div>
+    </div>
+  )}
+
+  {/* 2. Ready Media Image layer */}
+  {!isExplicitMissing && !isExplicitError && src && (
+    <img
+      src={src}
+      alt={alt}
+      width={finalW}
+      height={finalH}
+      loading={loading}
+      decoding={decoding}
+      class="media-image"
+      onload="this.parentElement.classList.add('is-ready');"
+      onerror="this.parentElement.classList.add('is-error'); this.style.display='none';"
+    />
+  )}
+
+  {/* 3. Missing State (no source available) */}
+  {isExplicitMissing && (
+    <div class="missing-layer" role="status" aria-label={missingLabel}>
+      <div class="slate-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect width="20" height="15" x="2" y="7" rx="2" ry="2" />
+          <polyline points="17 2 12 7 7 2" />
+        </svg>
+      </div>
+      <span class="slate-label">{missingLabel}</span>
+    </div>
+  )}
+
+  {/* 4. Error State (network or file error fallback) */}
+  <div class="error-layer" role="alert" aria-label="Không thể tải video">
+    <div class="error-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="12" x2="12" y1="8" y2="12" />
+        <line x1="12" x2="12.01" y1="16" y2="16" />
+      </svg>
+    </div>
+    <span class="error-label">Tải hình ảnh không thành công</span>
+    <button type="button" class="retry-btn glass" onclick="const p = this.closest('[data-media-placeholder]'); const img = p.querySelector('img'); if(img){ p.classList.remove('is-error'); img.style.display='block'; const u = new URL(img.src, window.location.href); u.searchParams.set('_t', Date.now()); img.src = u.toString(); }">
+      <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+      </svg>
+      <span>Thử lại</span>
+    </button>
+  </div>
+</div>
+
+<style>
+  .media-placeholder-frame {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background: #0d0e12;
+    border-radius: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    contain: layout paint;
+  }
+
+  /* When rendered standalone outside a .media wrapper that defines aspect-ratio */
+  :not(.media) > .media-placeholder-frame.ratio-16-9,
+  .media-placeholder-frame.ratio-16-9:not(.media *) {
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r-md);
+  }
+  :not(.media) > .media-placeholder-frame.ratio-9-16,
+  .media-placeholder-frame.ratio-9-16:not(.media *) {
+    aspect-ratio: 9 / 16;
+    border-radius: var(--r-sm);
+  }
+  :not(.media) > .media-placeholder-frame.ratio-4-5,
+  .media-placeholder-frame.ratio-4-5:not(.media *) {
+    aspect-ratio: 4 / 5;
+    border-radius: var(--r-sm);
+  }
+
+  :global(.media > .media-placeholder-frame) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: none;
+  }
+
+  /* Image layer */
+  .media-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 2;
+  }
+
+  .media-placeholder-frame.is-error .media-image {
+    display: none !important;
+  }
+
+  /* Skeleton Loading Layer */
+  .skeleton-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(180deg, #16171b 0%, #0e0f13 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.25s ease-out;
+  }
+
+  .media-placeholder-frame.is-ready .skeleton-layer {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .skeleton-shimmer {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgb(255 255 255 / 0.04) 50%,
+      transparent 100%
+    );
+    animation: shimmer 2.2s infinite ease-in-out;
+  }
+
+  .skeleton-icon {
+    color: rgb(255 255 255 / 0.12);
+    position: relative;
+    z-index: 2;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton-shimmer {
+      animation: none;
+    }
+  }
+
+  /* Missing Slate Layer */
+  .missing-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 16px;
+    text-align: center;
+    background: radial-gradient(circle at 50% 50%, #16171d 0%, #0a0b0e 100%);
+  }
+
+  .slate-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: var(--r-pill);
+    background: rgb(255 255 255 / 0.04);
+    border: 1px solid rgb(255 255 255 / 0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fg-3);
+  }
+
+  .slate-label {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-3);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  /* Error Layer */
+  .error-layer {
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    text-align: center;
+    background: radial-gradient(circle at 50% 50%, #1c1416 0%, #0d090a 100%);
+  }
+
+  .media-placeholder-frame.is-error .error-layer {
+    display: flex;
+  }
+
+  .error-icon {
+    color: #ff6b6b;
+  }
+
+  .error-label {
+    font-size: var(--fs-xs);
+    color: var(--fg-2);
+    max-width: 20ch;
+    line-height: 1.35;
+  }
+
+  .retry-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+    font-size: 0.75rem;
+    color: var(--fg);
+    cursor: pointer;
+    background: rgb(255 255 255 / 0.1);
+    border: 1px solid rgb(255 255 255 / 0.2);
+    transition: background var(--dur-fast) ease, transform var(--dur-fast) ease;
+  }
+  .retry-btn:hover {
+    background: rgb(255 255 255 / 0.18);
+    transform: translateY(-1px);
+  }
+</style>

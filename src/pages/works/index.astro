@@ -1,23 +1,73 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import CollectionCard from '../../components/CollectionCard.astro';
-import VideoGrid from '../../components/VideoGrid.astro';
+import VideoCard from '../../components/VideoCard.astro';
 import EmptyState from '../../components/EmptyState.astro';
 import GoogleDriveButton from '../../components/GoogleDriveButton.astro';
+import CampaignShowcase from '../../components/CampaignShowcase.astro';
 import { siteConfig } from '../../data/site';
 import {
   getCollections,
   getVideos,
+  getCollectionKinds,
+  videoKinds,
   standaloneVideos,
   summarize,
   KIND_LABEL,
   type CollectionKind,
+  type VideoItem,
 } from '../../lib/content';
 
-const [collections, videos] = await Promise.all([getCollections(), getVideos()]);
+const [collections, videos, kindsMap] = await Promise.all([
+  getCollections(),
+  getVideos(),
+  getCollectionKinds(),
+]);
 const summaries = collections.map((c) => summarize(c, videos));
 const standalone = standaloneVideos(videos);
 const hasAnyWork = summaries.length > 0 || videos.length > 0;
+
+// Resolve year per video (from video metadata or collection metadata)
+const collectionYearMap = new Map(collections.map((c) => [c.id, c.data.year]));
+
+function resolveVideoYear(video: VideoItem): string | undefined {
+  if (video.data.year) return video.data.year;
+  for (const ref of video.data.collections) {
+    const cy = collectionYearMap.get(ref.id);
+    if (cy) return cy;
+  }
+  return undefined;
+}
+
+// Group videos by year descending
+const yearBuckets = new Map<string, VideoItem[]>();
+const unclassifiedVideos: VideoItem[] = [];
+
+for (const video of videos) {
+  const y = resolveVideoYear(video);
+  if (y) {
+    const list = yearBuckets.get(y) || [];
+    list.push(video);
+    yearBuckets.set(y, list);
+  } else {
+    unclassifiedVideos.push(video);
+  }
+}
+
+const sortedYears = Array.from(yearBuckets.keys()).sort((a, b) => b.localeCompare(a));
+const yearGroups = sortedYears.map((year) => ({
+  id: year,
+  title: year,
+  videos: yearBuckets.get(year)!,
+}));
+
+if (unclassifiedVideos.length > 0) {
+  yearGroups.push({
+    id: 'featured',
+    title: 'Tác phẩm tuyển chọn',
+    videos: unclassifiedVideos,
+  });
+}
 
 const presentKinds = new Set<CollectionKind>(collections.map((c) => c.data.kind));
 const filterOptions: Array<{ id: string; label: string }> = [
@@ -80,13 +130,58 @@ const filterOptions: Array<{ id: string; label: string }> = [
       )
     }
 
+    {/* Section B: All Works — Grouped by Year Descending */}
     {
-      videos.length > 0 && (
+      yearGroups.length > 0 && (
         <section class="work-block" data-videos-section aria-labelledby="work-videos">
           <div class="section-head">
             <h2 class="section-title" id="work-videos">Tất cả video</h2>
           </div>
-          <VideoGrid videos={videos} group="works-all" showOrientationSwitch={false} />
+
+          <div class="year-groups-container">
+            {yearGroups.map((group) => (
+              <div class="year-group-block" data-year-group={group.id}>
+                <div class="year-header reveal">
+                  <div class="year-title-row">
+                    <h3 class="year-heading">{group.title}</h3>
+                    <span class="year-count-badge glass">{group.videos.length} video</span>
+                  </div>
+                  <div class="year-hairline" aria-hidden="true" />
+                </div>
+
+                <ul class="works-mixed-grid" role="list">
+                  {group.videos.map((video) => (
+                    <li
+                      class:list={[
+                        'works-grid-item',
+                        'reveal',
+                        video.data.orientation === 'landscape' ? 'span-landscape' : 'span-portrait',
+                      ]}
+                      data-kinds={videoKinds(video, kindsMap)}
+                      data-orientation={video.data.orientation}
+                    >
+                      <VideoCard video={video} group={`works-${group.id}`} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    {/* Section D: Future Brand / Campaign Showcase (Preview Mode Only) */}
+    {
+      siteConfig.demoPreview && (
+        <section class="work-block preview-campaign-block" aria-label="Brand & Campaign Architecture Preview">
+          <div class="section-head">
+            <div class="section-intro">
+              <p class="eyebrow">Kiến trúc tương lai (Preview)</p>
+              <h2 class="section-title">Brand & Campaign Hierarchy</h2>
+            </div>
+          </div>
+          <CampaignShowcase />
         </section>
       )
     }
@@ -192,8 +287,94 @@ const filterOptions: Array<{ id: string; label: string }> = [
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 380px), 1fr));
   }
 
+  /* Year Grouping Styling */
+  .year-groups-container {
+    display: grid;
+    gap: clamp(48px, 6vw, 80px);
+  }
+
+  .year-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: clamp(16px, 2.5vw, 24px);
+  }
+
+  .year-title-row {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .year-heading {
+    font-size: clamp(1.375rem, 2.5vw, 2rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--fg);
+    margin: 0;
+  }
+
+  .year-count-badge {
+    font-size: var(--fs-xs);
+    font-weight: 500;
+    color: var(--fg-3);
+    padding: 2px 8px;
+    border-radius: var(--r-pill);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .year-hairline {
+    flex: 1;
+    height: 1px;
+    background: var(--hairline);
+  }
+
+  /* High Density Mixed-Aspect Grid */
+  .works-mixed-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--gap);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  @media (min-width: 600px) {
+    .works-mixed-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (min-width: 960px) {
+    .works-mixed-grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .span-landscape {
+      grid-column: span 2;
+    }
+  }
+
+  @media (min-width: 1280px) {
+    .works-mixed-grid {
+      grid-template-columns: repeat(5, 1fr);
+    }
+    .span-landscape {
+      grid-column: span 2;
+    }
+  }
+
+  .works-grid-item {
+    min-width: 0;
+  }
+
+  .preview-campaign-block {
+    margin-top: calc(var(--section) * 1.2);
+  }
+
   li[hidden],
-  .work-block[hidden] {
+  .work-block[hidden],
+  .year-group-block[hidden] {
     display: none;
   }
 </style>
@@ -203,9 +384,8 @@ const filterOptions: Array<{ id: string; label: string }> = [
   const collectionSection = document.querySelector<HTMLElement>('[data-collections-section]');
   const collectionItems = document.querySelectorAll<HTMLElement>('[data-collections-section] li[data-kind]');
   const videoSection = document.querySelector<HTMLElement>('[data-videos-section]');
-  const videoGrid = videoSection?.querySelector<HTMLElement>('[data-video-grid]');
   const videoItems = document.querySelectorAll<HTMLElement>('[data-videos-section] li[data-kinds]');
-  const videoGroups = document.querySelectorAll<HTMLElement>('[data-videos-section] .group');
+  const yearGroupBlocks = document.querySelectorAll<HTMLElement>('[data-videos-section] .year-group-block');
 
   function applyFilter(filter: string) {
     for (const btn of buttons) {
@@ -225,24 +405,19 @@ const filterOptions: Array<{ id: string; label: string }> = [
     for (const item of videoItems) {
       const kinds = (item.dataset.kinds ?? '').split(/\s+/).filter(Boolean);
       const show = filter === 'all' || kinds.includes(filter);
-      if (show) {
-        item.removeAttribute('data-filter-hidden');
-      } else {
-        item.setAttribute('data-filter-hidden', 'true');
-      }
+      item.hidden = !show;
     }
 
-    let anyVideoGroupVisible = false;
-    for (const group of videoGroups) {
-      const hasVisible = group.querySelector('li:not([data-filter-hidden="true"])') !== null;
-      group.hidden = !hasVisible;
-      if (hasVisible) anyVideoGroupVisible = true;
+    let anyGroupVisible = false;
+    for (const grp of yearGroupBlocks) {
+      const hasVisible = grp.querySelector('li:not([hidden])') !== null;
+      grp.hidden = !hasVisible;
+      if (hasVisible) anyGroupVisible = true;
     }
+
     if (videoSection) {
-      videoSection.hidden = !anyVideoGroupVisible;
+      videoSection.hidden = !anyGroupVisible;
     }
-
-    videoGrid?.dispatchEvent(new CustomEvent('portfolio:filter-change'));
   }
 
   for (const btn of buttons) {
