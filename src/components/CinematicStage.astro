@@ -1,10 +1,15 @@
 ---
 /**
- * Cinematic Hero Stage — Apple Product Showcase × iOS 27 Autonomous AI Stage.
- * - Minimalist floating 3-panel triptych with optical depth and obsidian atmosphere.
- * - Dedicated AI ambient loop and high-fidelity WebP posters for Desktop and Mobile.
- * - Zero dependency on portfolio work footage or video catalog mockups.
- * - Fully responsive, 0 CLS, accessible, respectful of reduced-motion and Save-Data.
+ * Cinematic Hero Stage — Round 04.1 (Recomposed Hero & Continuous Scroll)
+ * Apple-inspired cinematic minimalism × Extreme low-key portrait.
+ *
+ * Recomposed Architecture:
+ * - Unified Left Block: VUPHM (Headline) + Video Editor (Role) + CTAs (Xem tác phẩm & Liên hệ)
+ *   vertically centered in the upper-middle left, never pushed to the bottom.
+ * - Right Block: Low-key Signature Portrait (Variant B) with soft organic silver aura & light sweep,
+ *   floating effortlessly in #06070a obsidian space (no rigid picture-frame glass rectangle).
+ * - Continuous Scroll Transition: Natural flow with simultaneous entrance of Gallery cards.
+ *   ZERO black gaps between Hero and Content at any scroll position.
  */
 import type { VideoItem } from '../lib/content';
 import { siteConfig } from '../data/site';
@@ -13,25 +18,61 @@ interface Props {
   video?: VideoItem;
   headline?: string;
   headlineAccent?: string;
-  subline?: string;
+  variant?: 'abstract' | 'portrait-a' | 'portrait-b';
 }
 
 const {
   headline = siteConfig.name,
   headlineAccent = siteConfig.role,
-  subline = siteConfig.personality.hero.subline || 'Biên tập video.',
+  variant = 'portrait-b',
 } = Astro.props;
+
+const isPortrait = variant === 'portrait-a' || variant === 'portrait-b';
+
+const desktopPoster =
+  variant === 'portrait-a'
+    ? '/hero/hero-portrait-a-desktop.webp'
+    : variant === 'portrait-b'
+      ? '/hero/hero-portrait-b-desktop.webp'
+      : '/hero/hero-poster-desktop.webp';
+
+const mobilePoster =
+  variant === 'portrait-a'
+    ? '/hero/hero-portrait-a-mobile.webp'
+    : variant === 'portrait-b'
+      ? '/hero/hero-portrait-b-mobile.webp'
+      : '/hero/hero-poster-mobile.webp';
+
+const figureCutoutDesktop =
+  variant === 'portrait-a'
+    ? '/hero/hero-figure-a-desktop.webp'
+    : '/hero/hero-figure-b-desktop.webp';
+
+const figureCutoutMobile =
+  variant === 'portrait-a'
+    ? '/hero/hero-figure-a-mobile.webp'
+    : '/hero/hero-figure-b-mobile.webp';
 
 const { cta } = siteConfig.personality;
 ---
 
-<section class="hero" aria-label="Giới thiệu VUPHM">
-  <div class="hero-media">
-    <picture>
-      <source media="(max-width: 767px)" srcset="/hero/hero-poster-mobile.webp" width="1080" height="1920" />
+<section
+  class:list={['hero-section', { 'is-portrait': isPortrait, [`variant-${variant}`]: true }]}
+  aria-label="Giới thiệu VUPHM"
+>
+  <!-- Background Media & Organic Light Atmosphere -->
+  <div class="hero-backdrop" aria-hidden="true">
+    <!-- Base Stage Atmosphere (or Master Poster for Abstract) -->
+    <picture class="hero-master-pic">
+      <source
+        media="(max-width: 767px)"
+        srcset={isPortrait ? '/hero/hero-stage-bg-mobile.webp' : mobilePoster}
+        width="1080"
+        height="1920"
+      />
       <img
-        class="poster"
-        src="/hero/hero-poster-desktop.webp"
+        class="master-poster"
+        src={isPortrait ? '/hero/hero-stage-bg-desktop.webp' : desktopPoster}
         alt={`${headline} — ${headlineAccent}`}
         width="1920"
         height="1080"
@@ -40,102 +81,207 @@ const { cta } = siteConfig.personality;
       />
     </picture>
 
-    <video
-      data-ambient
-      data-src="/hero/hero-ambient-desktop.mp4"
-      data-src-mobile="/hero/hero-ambient-mobile.mp4"
-      width="1920"
-      height="1080"
-      muted
-      loop
-      playsinline
-      preload="none"
-      poster="/hero/hero-poster-desktop.webp"
-      aria-hidden="true"
-    />
+    {isPortrait && (
+      <div class="hero-atmosphere-layers">
+        <!-- Floating Glass Panel -->
+        <picture class="atm-layer layer-glass">
+          <source media="(max-width: 767px)" srcset="/hero/hero-glass-mobile.webp" />
+          <img src="/hero/hero-glass-desktop.webp" alt="" loading="eager" decoding="async" />
+        </picture>
 
-    <div class="shade" aria-hidden="true"></div>
-    <div class="vignette" aria-hidden="true"></div>
+        <!-- Guiding Silver Light Sweep -->
+        <picture class="atm-layer layer-streak">
+          <source media="(max-width: 767px)" srcset="/hero/hero-streak-mobile.webp" />
+          <img src="/hero/hero-streak-desktop.webp" alt="" loading="eager" decoding="async" />
+        </picture>
+
+        <!-- Isolated Signature Portrait Cutout -->
+        <picture class="atm-layer layer-figure">
+          <source media="(max-width: 767px)" srcset={figureCutoutMobile} />
+          <img class="figure-img" src={figureCutoutDesktop} alt="" loading="eager" decoding="async" />
+        </picture>
+      </div>
+    )}
+
+    {!isPortrait && (
+      <video
+        data-ambient
+        data-src="/hero/hero-ambient-desktop.mp4"
+        data-src-mobile="/hero/hero-ambient-mobile.mp4"
+        width="1920"
+        height="1080"
+        muted
+        loop
+        playsinline
+        preload="none"
+        poster="/hero/hero-poster-desktop.webp"
+        aria-hidden="true"
+      />
+    )}
+
+    <div class="stage-shade" aria-hidden="true"></div>
+    <div class="stage-vignette" aria-hidden="true"></div>
   </div>
 
-  <div class="hero-copy wrap">
-    <div class="headline-block">
-      <h1>
-        <span class="line-primary">{headline}</span>
-        {headlineAccent && <span class="line-accent">{headlineAccent}</span>}
-      </h1>
-      {subline && <p class="subline">{subline}</p>}
-    </div>
+  <!-- Recomposed Foreground Layout (Vertically Centered in Viewport) -->
+  <div class="hero-container wrap">
+    <div class="hero-info-group">
+      <div class="hero-brand-block">
+        <h1 class="hero-headline">
+          <span class="line-name">{headline}</span>
+          {headlineAccent && <span class="line-role">{headlineAccent}</span>}
+        </h1>
+      </div>
 
-    <div class="hero-actions">
-      <a
-        class="primary-btn"
-        href="#collections"
-        data-event="view_collection"
-        data-event-target="collections_section"
-        data-event-label={cta.heroPrimaryLabel}
-      >
-        <span>{cta.heroPrimaryLabel}</span>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="m6 9 6 6 6-6" />
-        </svg>
-      </a>
-      <a
-        class="glass glass-btn"
-        href="/#contact"
-        data-event="contact_click"
-        data-event-target="hero"
-      >
-        <span>{cta.heroSecondaryLabel}</span>
-      </a>
+      <!-- Action CTAs directly below Role in the same group -->
+      <div class="hero-cta-group">
+        <a
+          class="hero-btn-primary"
+          href="#collections"
+          data-event="view_collection"
+          data-event-target="collections_section"
+          data-event-label={cta.heroPrimaryLabel}
+        >
+          <span>{cta.heroPrimaryLabel}</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </a>
+        <a
+          class="hero-btn-secondary"
+          href="/#contact"
+          data-event="contact_click"
+          data-event-target="hero"
+        >
+          <span>{cta.heroSecondaryLabel}</span>
+        </a>
+      </div>
     </div>
   </div>
+
+  <!-- Subtle Scroll Prompt Indicator at Bottom Center -->
+  <a href="#collections" class="hero-scroll-cue" aria-label="Cuộn xuống xem tác phẩm">
+    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+    <span class="cue-hairline" aria-hidden="true"></span>
+  </a>
 </section>
 
 <script is:inline>
   (() => {
-    const v = document.querySelector('.hero video[data-ambient]');
-    if (!v) return;
-    const isMobile = window.matchMedia('(max-width: 767px)').matches;
-    if (isMobile) {
-      v.dataset.src = '/hero/hero-ambient-mobile.mp4';
-      v.poster = '/hero/hero-poster-mobile.webp';
-      v.setAttribute('width', '1080');
-      v.setAttribute('height', '1920');
-    } else {
-      v.dataset.src = '/hero/hero-ambient-desktop.mp4';
-      v.poster = '/hero/hero-poster-desktop.webp';
-      v.setAttribute('width', '1920');
-      v.setAttribute('height', '1080');
-    }
+    // Dynamic URL parameter preview handler (?hero=b, ?hero=a, ?hero=abstract)
+    try {
+      const urlParams = new URLSearchParams(window.location.search);
+      const heroParam = urlParams.get('hero');
+      if (heroParam) {
+        const heroSection = document.querySelector('.hero-section');
+        const posterImg = document.querySelector('.hero-backdrop .master-poster');
+        const posterSource = document.querySelector('.hero-backdrop .hero-master-pic source');
+        const figureImg = document.querySelector('.hero-backdrop .figure-img');
+        const figureSource = document.querySelector('.hero-backdrop .layer-figure source');
+        const atmosphereLayers = document.querySelector('.hero-atmosphere-layers');
+        const video = document.querySelector('.hero-backdrop video[data-ambient]');
+
+        let deskSrc = '';
+        let mobiSrc = '';
+        let figDesk = '';
+        let figMobi = '';
+
+        if (heroParam === 'a' || heroParam === 'narrow') {
+          deskSrc = '/hero/hero-stage-bg-desktop.webp';
+          mobiSrc = '/hero/hero-stage-bg-mobile.webp';
+          figDesk = '/hero/hero-figure-a-desktop.webp';
+          figMobi = '/hero/hero-figure-a-mobile.webp';
+        } else if (heroParam === 'b' || heroParam === 'rim' || heroParam === 'portrait') {
+          deskSrc = '/hero/hero-stage-bg-desktop.webp';
+          mobiSrc = '/hero/hero-stage-bg-mobile.webp';
+          figDesk = '/hero/hero-figure-b-desktop.webp';
+          figMobi = '/hero/hero-figure-b-mobile.webp';
+        } else if (heroParam === 'abstract') {
+          deskSrc = '/hero/hero-poster-desktop.webp';
+          mobiSrc = '/hero/hero-poster-mobile.webp';
+        }
+
+        if (deskSrc && posterImg) {
+          posterImg.src = deskSrc;
+          if (posterSource) posterSource.srcset = mobiSrc;
+          if (figDesk && figureImg) figureImg.src = figDesk;
+          if (figMobi && figureSource) figureSource.srcset = figMobi;
+
+          if (heroSection) {
+            heroSection.classList.toggle('is-portrait', heroParam !== 'abstract');
+            heroSection.classList.remove('variant-portrait-a', 'variant-portrait-b', 'variant-abstract');
+            heroSection.classList.add(heroParam === 'abstract' ? 'variant-abstract' : heroParam.startsWith('a') ? 'variant-portrait-a' : 'variant-portrait-b');
+          }
+          if (atmosphereLayers) {
+            atmosphereLayers.style.display = heroParam === 'abstract' ? 'none' : '';
+          }
+          if (video && heroParam !== 'abstract') {
+            video.pause();
+            video.remove();
+          }
+        }
+      }
+    } catch (_) {}
+
+    // Subtle Parallax Scroll Driver (Continuous, Passive & Throttled)
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const hero = document.querySelector('.hero-section');
+    if (!hero || reduce) return;
+
+    let ticking = false;
+    let inView = true;
+
+    const onScroll = () => {
+      if (!ticking && inView) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          const rect = hero.getBoundingClientRect();
+          const winH = window.innerHeight;
+          // Progress of hero exiting: 0 when at top, 1 when fully scrolled past
+          if (rect.bottom < 0) {
+            inView = false;
+            return;
+          }
+          inView = true;
+          const p = Math.min(1, Math.max(0, -rect.top / winH));
+          hero.style.setProperty('--scroll-p', p.toFixed(4));
+        });
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll, { passive: true });
+    onScroll();
   })();
 </script>
 
 <style>
-  .hero {
+  /* Hero Section: Natural 100svh viewport, vertically centered */
+  .hero-section {
+    --scroll-p: 0;
     position: relative;
-    height: 100svh;
-    min-height: 580px;
-    max-height: 1120px;
+    min-height: 100svh;
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     overflow: hidden;
     background: #06070a;
   }
 
-  .hero-media {
+  /* Backdrop: Covers the hero viewport seamlessly */
+  .hero-backdrop {
     position: absolute;
     inset: 0;
     overflow: hidden;
-    transform-origin: 50% 30%;
-    will-change: transform;
-    transform: translateZ(0);
-    contain: paint layout;
+    pointer-events: none;
+    background: #06070a;
   }
 
-  .hero-media picture,
-  .hero-media img,
-  .hero-media video {
+  .hero-master-pic,
+  .hero-master-pic img,
+  .hero-backdrop video {
     position: absolute;
     inset: 0;
     width: 100%;
@@ -143,154 +289,230 @@ const { cta } = siteConfig.personality;
     object-fit: cover;
   }
 
-  .hero-media video {
-    transform: translateZ(0);
-  }
-
-  /* When video is playing, immediately pause & hide poster to release GPU memory & compositor overhead */
-  .hero-media.has-video-playing picture,
-  .hero-media.has-video-playing .poster {
-    opacity: 0 !important;
-    animation: none !important;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  .shade {
+  /* Multi-layer Atmosphere */
+  .hero-atmosphere-layers {
     position: absolute;
     inset: 0;
-    pointer-events: none;
+  }
+
+  .atm-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .atm-layer img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Subtle parallax depth adjustments on scroll */
+  .layer-glass {
+    transform: translate3d(0, calc(var(--scroll-p) * -22px), 0);
+    opacity: calc(1 - var(--scroll-p) * 0.35);
+  }
+
+  .layer-streak {
+    transform: translate3d(0, calc(var(--scroll-p) * -16px), 0);
+    opacity: calc(1 - var(--scroll-p) * 0.4);
+  }
+
+  .layer-figure {
+    transform: translate3d(0, calc(var(--scroll-p) * -8px), 0) scale(calc(1 - var(--scroll-p) * 0.02));
+    opacity: calc(1 - var(--scroll-p) * 0.3);
+  }
+
+  /* Cinematic Shading & Vignette */
+  .stage-shade {
+    position: absolute;
+    inset: 0;
     background:
-      linear-gradient(to bottom, rgb(6 7 10 / 0.45) 0%, rgb(6 7 10 / 0) 24%),
-      linear-gradient(to top, #06070a 0%, rgb(6 7 10 / 0.72) 28%, rgb(6 7 10 / 0) 62%);
+      linear-gradient(to bottom, rgb(6 7 10 / 0.55) 0%, rgb(6 7 10 / 0) 20%),
+      linear-gradient(to top, #06070a 0%, rgb(6 7 10 / 0.6) 24%, rgb(6 7 10 / 0) 55%);
   }
 
-  .vignette {
+  .stage-vignette {
     position: absolute;
     inset: 0;
-    pointer-events: none;
-    background: radial-gradient(circle at 50% 45%, transparent 40%, rgb(6 7 10 / 0.35) 90%);
+    background: radial-gradient(circle at 50% 45%, transparent 48%, rgb(6 7 10 / 0.38) 95%);
   }
 
-  .hero-copy {
+  /* Recomposed Foreground Container */
+  .hero-container {
     position: relative;
-    z-index: 2;
+    z-index: 4;
+    width: 100%;
+    padding-top: calc(var(--nav-h) + 24px);
+    padding-bottom: 56px;
     display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 28px 40px;
-    padding-bottom: clamp(36px, 6vw, 76px);
+    align-items: center;
   }
 
-  h1 {
+  .hero-info-group {
+    max-width: 580px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    will-change: transform, opacity;
+    transform: translate3d(0, calc(var(--scroll-p) * -24px), 0);
+    opacity: calc(1 - var(--scroll-p) * 0.65);
+  }
+
+  /* Headline & Role Typography */
+  .hero-headline {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .line-name {
     font-size: var(--fs-hero);
     font-weight: 600;
-    line-height: 0.96;
+    line-height: 0.94;
     letter-spacing: var(--tracking-tight);
-  }
-
-  .line-primary {
-    display: block;
     color: #fff;
-    text-shadow: 0 2px 20px rgb(0 0 0 / 0.4);
+    text-shadow: 0 2px 28px rgb(0 0 0 / 0.5);
   }
 
-  .line-accent {
-    display: block;
-    color: rgb(245 245 247 / 0.68);
-    font-weight: 400;
+  .line-role {
+    font-size: clamp(1.6rem, 2.8vw, 3rem);
+    font-weight: 300;
+    letter-spacing: -0.018em;
+    color: rgb(220 230 245 / 0.74);
     margin-top: 4px;
   }
 
-  .subline {
-    margin-top: 14px;
-    font-size: var(--fs-lead);
-    color: var(--fg-2);
-    letter-spacing: -0.015em;
-    max-width: 42ch;
-  }
-
-  .hero-actions {
+  /* CTA Buttons (Grouped directly below Role on the left) */
+  .hero-cta-group {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 14px;
   }
 
+  /* Scroll Indicator at Bottom Center */
+  .hero-scroll-cue {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: rgb(220 230 245 / 0.4);
+    text-decoration: none;
+    transition: color var(--dur-fast) ease, opacity var(--dur-fast) ease;
+    opacity: calc(1 - var(--scroll-p) * 3.5);
+    pointer-events: auto;
+  }
+
+  .hero-scroll-cue:hover {
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  .chevron-icon {
+    width: 20px;
+    height: 20px;
+    animation: cue-bob 2.4s ease-in-out infinite;
+  }
+
+  .cue-hairline {
+    width: 1px;
+    height: 16px;
+    background: linear-gradient(to bottom, currentColor, transparent);
+  }
+
+  @keyframes cue-bob {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(4px);
+    }
+  }
+
+  /* Initial Entrances */
   @media (prefers-reduced-motion: no-preference) {
-    .poster {
-      animation: hero-drift 26s ease-in-out infinite alternate;
+    .hero-info-group {
+      animation: hero-rise 1.05s var(--ease-out) both;
     }
-    .headline-block,
-    .hero-actions {
-      animation: rise 1.05s var(--ease-out) both;
-    }
-    .hero-actions {
-      animation-delay: 0.14s;
-    }
-
-    @supports (animation-timeline: scroll()) {
-      .hero-media {
-        animation: hero-depth linear both;
-        animation-timeline: scroll(root);
-        animation-range: 0 100svh;
-      }
-      .hero-copy {
-        animation: hero-copy-out linear both;
-        animation-timeline: scroll(root);
-        animation-range: 0 60svh;
-      }
+    .hero-scroll-cue {
+      animation: hero-rise 1.2s var(--ease-out) 0.3s both;
     }
   }
 
-  @keyframes hero-drift {
-    from {
-      transform: scale(1.01);
-    }
-    to {
-      transform: scale(1.05) translate3d(-0.8%, -0.5%, 0);
-    }
-  }
-
-  @keyframes rise {
+  @keyframes hero-rise {
     from {
       opacity: 0;
-      transform: translateY(24px);
+      transform: translate3d(0, 24px, 0);
     }
-  }
-
-  @keyframes hero-depth {
     to {
-      transform: scale(0.96);
-      opacity: 0.45;
+      opacity: 1;
+      transform: translate3d(0, 0, 0);
     }
   }
 
-  @keyframes hero-copy-out {
-    to {
-      opacity: 0;
-      transform: translateY(-40px);
-    }
-  }
 
-  @media (max-width: 733px) {
-    .hero {
-      height: 90svh;
-      min-height: 540px;
+
+  /* Dedicated Mobile Layout (390×844, 360×780) */
+  @media (max-width: 767px) {
+    .hero-section {
+      min-height: 100svh;
+      align-items: flex-end; /* Mobile: content rests naturally in lower half */
     }
-    .hero-copy {
-      gap: 20px;
-      padding-bottom: 32px;
+    .hero-container {
+      padding-top: calc(var(--nav-h) + 16px);
+      padding-bottom: 52px;
     }
-    .hero-actions {
+    .hero-info-group {
+      max-width: 100%;
+      gap: 22px;
+    }
+    .line-name {
+      font-size: clamp(2.8rem, 11vw, 3.8rem);
+    }
+    .line-role {
+      font-size: clamp(1.35rem, 5.2vw, 1.75rem);
+    }
+    .hero-cta-group {
       width: 100%;
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 10px;
     }
-    .hero-actions .primary-btn,
-    .hero-actions .glass-btn {
-      flex: 1 1 calc(50% - 7px);
+    .hero-btn-primary,
+    .hero-btn-secondary {
+      flex: 0 0 auto;
+      white-space: nowrap;
       justify-content: center;
       text-align: center;
+      padding: 0 16px;
+      font-size: 0.8125rem;
+      min-height: 42px;
+    }
+    .hero-scroll-cue {
+      bottom: 12px;
+    }
+  }
+
+  /* Reduced Motion Static Fallback */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-info-group,
+    .atm-layer,
+    .hero-scroll-cue {
+      transform: none !important;
+      opacity: 1 !important;
+      animation: none !important;
+    }
+    .hero-scroll-cue {
+      display: none;
     }
   }
 </style>

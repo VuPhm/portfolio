@@ -50,6 +50,11 @@ const [w, h] = isRatio45 ? [1080, 1350] : isPortrait ? [900, 1600] : [1600, 900]
       loading={eager ? 'eager' : 'lazy'}
       decoding="async"
     />
+    <div class="play-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5.14v13.72a1 1 0 0 0 1.54.84l11-6.86a1 1 0 0 0 0-1.68l-11-6.86A1 1 0 0 0 8 5.14z" />
+      </svg>
+    </div>
   </div>
   <div class="caption">
     <span class="title">{d.title}</span>
@@ -75,6 +80,40 @@ const [w, h] = isRatio45 ? [1080, 1350] : isPortrait ? [900, 1600] : [1600, 900]
   .media.ratio-4-5 {
     aspect-ratio: 4 / 5;
     --r: var(--r-sm);
+  }
+
+  .play-badge {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--r-pill);
+    background: rgb(15 17 23 / 0.65);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    z-index: 4;
+    pointer-events: none;
+    transition:
+      transform var(--dur-fast) var(--ease-out),
+      background-color var(--dur-fast) ease,
+      border-color var(--dur-fast) ease;
+  }
+  .play-badge svg {
+    width: 12px;
+    height: 12px;
+    transform: translateX(1px);
+  }
+  .video-card:hover .play-badge {
+    transform: scale(1.1);
+    background: rgb(22 26 36 / 0.85);
+    border-color: rgb(220 230 245 / 0.4);
   }
   .caption {
     display: flex;

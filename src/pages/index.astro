@@ -3,7 +3,6 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import CinematicStage from '../components/CinematicStage.astro';
 import CollectionCard from '../components/CollectionCard.astro';
 import EditorialVideoGrid from '../components/EditorialVideoGrid.astro';
-import ScrollStory from '../components/ScrollStory.astro';
 import EmptyState from '../components/EmptyState.astro';
 import GoogleDriveButton from '../components/GoogleDriveButton.astro';
 import { siteConfig, hasRealContactEmail, isRealSocialLink } from '../data/site';
@@ -12,7 +11,6 @@ import {
   getVideos,
   selectedVideos,
   summarize,
-  buildSiteStats,
 } from '../lib/content';
 
 const [collections, videos] = await Promise.all([getCollections(), getVideos()]);
@@ -30,23 +28,22 @@ const shownCollections = (featuredCollections.length ? featuredCollections : col
 
 const candidatePicks = selectedVideos(videos);
 const picks = (candidatePicks.length > 0 ? candidatePicks : videos).slice(0, 6);
-const stats = buildSiteStats(collections, videos);
 const hasEmail = hasRealContactEmail(contact.email);
 const realSocials = contact.socials.filter(isRealSocialLink);
 const hasPublishedWork = collections.length > 0 || videos.length > 0;
 ---
 
-<BaseLayout preloadImage="/hero/hero-poster-desktop.webp">
+<BaseLayout preloadImage="/hero/hero-portrait-b-desktop.webp">
   <CinematicStage
     video={heroVideo}
     headline={siteConfig.name}
     headlineAccent={siteConfig.role}
-    subline={personality.hero.subline}
+    variant="portrait-b"
   />
 
   {
     shownCollections.length > 0 ? (
-      <section class="section" id="collections" aria-labelledby="collections-title">
+      <section class="section section-collections" id="collections" aria-labelledby="collections-title">
         <div class="wrap">
           <div class="section-head reveal">
             <div class="section-intro">
@@ -101,11 +98,9 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
     )
   }
 
-  <ScrollStory config={siteConfig.scrollStory} />
-
   {
     picks.length > 0 && (
-      <section class="section" id={!shownCollections.length ? 'collections' : undefined} aria-labelledby="videos-title">
+      <section class="section" id="videos" aria-labelledby="videos-title">
         <div class="wrap">
           <div class="section-head reveal">
             <div class="section-intro">
@@ -126,27 +121,7 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
     )
   }
 
-  {
-    stats.length > 0 && (
-      <section class="section" aria-label="Portfolio statistics">
-        <div class="wrap">
-          <ul class="stats-strip reveal" role="list">
-            {stats.map((stat) => (
-              <li class="stat-item">
-                <div class="stat-value-row">
-                  <span class="stat-value">{stat.value}</span>
-                  {stat.note && <span class="stat-badge">{stat.note}</span>}
-                </div>
-                <span class="stat-label">{stat.label}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-    )
-  }
-
-  <!-- Section Giới thiệu (Round 03.6: Verified Identity & Standardized Software) -->
+  <!-- Section Giới thiệu (Round 04: Verified Identity & Standardized Software) -->
   <section class="section profile" id="about" aria-labelledby="about-title">
     <div class="wrap">
       <div class="profile-layout">
@@ -310,6 +285,10 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
 </BaseLayout>
 
 <style>
+  .section-collections {
+    padding-top: clamp(40px, 5.5vw, 76px);
+  }
+
   .collection-grid {
     display: grid;
     gap: var(--gap);

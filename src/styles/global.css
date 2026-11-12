@@ -12,23 +12,27 @@
 :root {
   color-scheme: dark;
 
-  /* Colour — the footage provides the colour, the UI stays neutral */
-  --bg: #000;
-  --surface: #0f0f10;
-  --surface-2: #1a1a1c;
+  /* Colour — Unified Obsidian & Graphite (Round 04 Apple Product Experience) */
+  --bg: #06070a;
+  --surface: #101217;
+  --surface-2: #16181f;
+  --surface-3: #1f222b;
   --fg: #f5f5f7;
   --fg-2: #a1a1a6;
   --fg-3: #6e6e73;
   --hairline: rgb(255 255 255 / 0.08);
+  --accent-silver: #dce6f5;
+  --accent-silver-soft: rgb(220 230 245 / 0.16);
+  --hairline-silver: rgb(220 230 245 / 0.2);
 
   /* Type — system stack first (SF Pro on Apple devices) */
   --font: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, sans-serif;
-  --fs-hero: clamp(3rem, 8.5vw, 7.5rem);
-  --fs-h1: clamp(2.5rem, 6vw, 5rem);
-  --fs-h2: clamp(1.75rem, 3.6vw, 3rem);
+  --fs-hero: clamp(3.2rem, 7.8vw, 6.8rem);
+  --fs-h1: clamp(2.5rem, 5.5vw, 4.8rem);
+  --fs-h2: clamp(1.75rem, 3.5vw, 3rem);
   --fs-h3: clamp(1.25rem, 1.8vw, 1.75rem);
-  --fs-lead: clamp(1.1875rem, 1.6vw, 1.5rem);
+  --fs-lead: clamp(1.125rem, 1.5vw, 1.4rem);
   --fs-body: 1.0625rem; /* 17px */
   --fs-sm: 0.875rem;
   --fs-xs: 0.75rem;
@@ -47,7 +51,7 @@
   --max: 1440px;
   --gutter: clamp(16px, 4vw, 48px);
   --gap: clamp(12px, 1.6vw, 24px);
-  --section: clamp(72px, 11vw, 160px);
+  --section: clamp(72px, 10vw, 144px);
   --nav-h: 52px;
 
   /* Motion */
@@ -231,13 +235,24 @@ video {
   height: 100%;
   object-fit: cover;
 }
+.media::before {
+  /* subtle top silver rim reflection matching storyboard frame 03 */
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 5%, rgb(220 230 245 / 0.2) 30%, rgb(255 255 255 / 0.35) 50%, rgb(220 230 245 / 0.2) 70%, transparent 95%);
+  pointer-events: none;
+  z-index: 6;
+  opacity: 0.7;
+}
 .media::after {
   /* hairline inner edge so dark posters don't bleed into the page */
   content: '';
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.06);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.07);
   pointer-events: none;
   z-index: 5;
 }
@@ -261,24 +276,23 @@ video {
 /* ------------------------------------------------------------------ */
 .glass {
   background:
-    linear-gradient(180deg, rgb(255 255 255 / 0.1), rgb(255 255 255 / 0.02) 55%),
-    rgb(30 30 32 / 0.55);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  backdrop-filter: blur(22px) saturate(180%);
-  border: 1px solid rgb(255 255 255 / 0.1);
+    linear-gradient(180deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.02) 55%),
+    rgb(18 20 26 / 0.65);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgb(255 255 255 / 0.09);
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.16),
-    inset 0 -1px 0 rgb(255 255 255 / 0.03),
-    0 10px 30px rgb(0 0 0 / 0.35);
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 12px 32px rgb(0 0 0 / 0.4);
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .glass {
-    background: rgb(30 30 32 / 0.94);
+    background: rgb(22 25 32 / 0.94);
   }
 }
 @media (prefers-reduced-transparency: reduce) {
   .glass {
-    background: rgb(30 30 32);
+    background: rgb(22 25 32);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
   }
@@ -298,7 +312,12 @@ video {
   cursor: pointer;
   transition:
     transform var(--dur-fast) var(--ease-out),
-    background-color var(--dur-fast) ease;
+    background-color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease;
+}
+.glass-btn:hover {
+  background: rgb(255 255 255 / 0.08);
+  border-color: rgb(255 255 255 / 0.18);
 }
 .glass-btn:active {
   transform: scale(0.96);
@@ -312,6 +331,85 @@ video {
   height: 18px;
 }
 
+/* Dedicated Hero Action Buttons (Reference 01 Concept) */
+.hero-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 0 20px;
+  white-space: nowrap;
+  border-radius: var(--r-pill);
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.14), rgb(255 255 255 / 0.05));
+  border: 1px solid rgb(220 230 245 / 0.35);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    0 8px 24px rgb(0 0 0 / 0.35);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  color: #fff;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
+}
+.hero-btn-primary:hover {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0.08));
+  border-color: rgb(220 230 245 / 0.55);
+  transform: translateY(-1px);
+}
+.hero-btn-primary:active {
+  transform: scale(0.96);
+}
+.hero-btn-primary svg {
+  width: 15px;
+  height: 15px;
+  stroke-width: 2.2;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+.hero-btn-primary:hover svg {
+  transform: translateX(3px);
+}
+
+.hero-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  white-space: nowrap;
+  border-radius: var(--r-pill);
+  background: rgb(255 255 255 / 0.03);
+  border: 1px solid rgb(255 255 255 / 0.12);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  color: var(--fg-2);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) ease,
+    border-color var(--dur-fast) ease,
+    background var(--dur-fast) ease;
+}
+.hero-btn-secondary:hover {
+  color: var(--fg);
+  border-color: rgb(255 255 255 / 0.28);
+  background: rgb(255 255 255 / 0.06);
+  transform: translateY(-1px);
+}
+.hero-btn-secondary:active {
+  transform: scale(0.96);
+}
+
 /* Solid light pill CTA for primary conversion actions */
 .primary-btn {
   display: inline-flex;
@@ -319,7 +417,8 @@ video {
   justify-content: center;
   gap: 8px;
   min-height: 44px;
-  padding: 0 22px;
+  padding: 0 20px;
+  white-space: nowrap;
   border-radius: var(--r-pill);
   background: var(--fg);
   color: #000;
