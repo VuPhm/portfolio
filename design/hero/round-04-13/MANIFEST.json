@@ -1,0 +1,131 @@
+{
+  "round": "ROUND 04.13",
+  "title": "Chromatic Scroll Lighting & GitHub Asset Archive",
+  "timestamp": "2026-11-13T01:31:00Z",
+  "files": {
+    "comparison_contact_sheet.png": {
+      "size_bytes": 1709882,
+      "sha256": "287ccfc987c00b4f49adad1655a23355b066c20c1771731e0b28d4edeabc1edd"
+    },
+    "keyframe_contact_sheet.png": {
+      "size_bytes": 2666601,
+      "sha256": "df0825e98779c7ed57a866f4bb39057a525d09ba5c6bf8d4f495d8299f6a1a6a"
+    },
+    "mask_amber.png": {
+      "size_bytes": 47589,
+      "sha256": "4d83188005be02006a02d45a4f302f5c007f5f043529b8c51cd4b18a4eae2813"
+    },
+    "mask_character_protect.png": {
+      "size_bytes": 41001,
+      "sha256": "9eb07df4ebd69d126f9e80dafb8027600436f5874862dda727dbc1de63309a93"
+    },
+    "mask_violet.png": {
+      "size_bytes": 55227,
+      "sha256": "b8a3a0b2d575d2c720f9c1a283e2ab0b1216114341dc67f6c1f610829f4c4bc6"
+    },
+    "master_1080p_concept_a.png": {
+      "size_bytes": 1681029,
+      "sha256": "d38e06f384299741abe9feb13eacf973df34f1c39ce05306b0c71d8e2ae443cb"
+    },
+    "master_1080p_concept_b.png": {
+      "size_bytes": 1708661,
+      "sha256": "729fa7901eeed2a4dce72405ba55f4735c430df254d5d7fee784c38cb2c0254a"
+    },
+    "master_concept_a_obsidian_silver.jpg": {
+      "size_bytes": 411897,
+      "sha256": "a83803b725ed6a323ab1370317664f859b02eae8cfc30ebf5ee2b88de8345ba7"
+    },
+    "master_concept_b_subtle_chromatic.jpg": {
+      "size_bytes": 478337,
+      "sha256": "7c040e60a890d7df4b2d25b1c973ba340bb827103815c695acb23723babbc2d9"
+    },
+    "render_chromatic_sequence.py": {
+      "size_bytes": 2456,
+      "sha256": "cad8df849ea3ca1eb862d1d41ba007cfd0de9a8e96d7a156e571f533744b535f"
+    },
+    "crops/crop_cheek_concept_a.png": {
+      "size_bytes": 112811,
+      "sha256": "5664eb14735507bc4fae21e2a57fa063ddf8a638d7ee758ebc0ce3fd7c53ebbd"
+    },
+    "crops/crop_cheek_concept_b.png": {
+      "size_bytes": 114086,
+      "sha256": "3152157572c01a782e48d69b6858695ca6f24aea0894ce3d6d3fdd23b210c2b5"
+    },
+    "crops/crop_face_concept_a.png": {
+      "size_bytes": 226392,
+      "sha256": "46af1ffbd39e3730bda7b0d6c3ab036b39bccb7b3d94beebb94b80c6c29a957c"
+    },
+    "crops/crop_face_concept_b.png": {
+      "size_bytes": 229477,
+      "sha256": "dba72a2d8bd08df03f7c8895b372d298eb5398c16904d09743298eeaf72a8675"
+    },
+    "crops/crop_hair_headroom_concept_a.png": {
+      "size_bytes": 158525,
+      "sha256": "9307b23ecf7805af3da9a82480022b17047e8fa1db6a96d901c4017680775b10"
+    },
+    "crops/crop_hair_headroom_concept_b.png": {
+      "size_bytes": 162846,
+      "sha256": "f050df86fecdb42788666d260ae76a0bf860c4ca49dd6138820a94c469716096"
+    },
+    "crops/crop_neck_shoulder_concept_a.png": {
+      "size_bytes": 188875,
+      "sha256": "3732712dec70339c2c3e8d0cc12a17f3db5c9588736127514f6cc0162daf205c"
+    },
+    "crops/crop_neck_shoulder_concept_b.png": {
+      "size_bytes": 193407,
+      "sha256": "fc59f2514a8198c5491828067515d7cee8d9a4e4937b5008b52bc1e271ca947d"
+    },
+    "keyframes/keyframe_p000.png": {
+      "size_bytes": 1681029,
+      "sha256": "d38e06f384299741abe9feb13eacf973df34f1c39ce05306b0c71d8e2ae443cb"
+    },
+    "keyframes/keyframe_p018.png": {
+      "size_bytes": 1681029,
+      "sha256": "d38e06f384299741abe9feb13eacf973df34f1c39ce05306b0c71d8e2ae443cb"
+    },
+    "keyframes/keyframe_p035.png": {
+      "size_bytes": 1698833,
+      "sha256": "b00738338bf97b9b34784564a81de0e040c98fabf8e5138ed4e46f0aaf67e995"
+    },
+    "keyframes/keyframe_p050.png": {
+      "size_bytes": 1717224,
+      "sha256": "acb5278bd7aef1a0cae891540449899c67d5003a401c97960fd3d9a4528b960c"
+    },
+    "keyframes/keyframe_p068.png": {
+      "size_bytes": 1717360,
+      "sha256": "3a0daf1dead480209623625d86e447dc54d4b8081d2dd106cf8710e7c663b09e"
+    },
+    "keyframes/keyframe_p085.png": {
+      "size_bytes": 1702072,
+      "sha256": "aff59d350cb8fcecee676949ac55403b0f5a2ea0a8326d54702f3c49d778da0f"
+    },
+    "keyframes/keyframe_p100.png": {
+      "size_bytes": 1696847,
+      "sha256": "d6682351d6f29a3705063bb2dc0cf755d852b918ef1292cc317e1767f66d8b0b"
+    },
+    "previews/preview_concept_a_1280x800.png": {
+      "size_bytes": 1025134,
+      "sha256": "f50dc5e05fa25e90e41c8bf942c043146578b683508e7335432cd64064116ba0"
+    },
+    "previews/preview_concept_a_1440x900.png": {
+      "size_bytes": 1243085,
+      "sha256": "5b089a270988d243bff49e3ba8092ce481309a5d36eca4452cfd85fe3968e509"
+    },
+    "previews/preview_concept_a_1920x1080.png": {
+      "size_bytes": 1687940,
+      "sha256": "ea175b60b459ae6967e10a4e0e368c2b31f9abbde723d603398d67e57f41d579"
+    },
+    "previews/preview_concept_b_1280x800.png": {
+      "size_bytes": 1036250,
+      "sha256": "dd988b5935e8767161b40018c830035165eaa7308d733f97da0fb0fc1b98663e"
+    },
+    "previews/preview_concept_b_1440x900.png": {
+      "size_bytes": 1260055,
+      "sha256": "c97d4354240784e9e9472053db5593c2fa7611f1de06055649965f3b8b5c4098"
+    },
+    "previews/preview_concept_b_1920x1080.png": {
+      "size_bytes": 1715788,
+      "sha256": "f98bd017401f099b981b737c65722edbab133a1bb959f6f3cdc70c809a98c353"
+    }
+  }
+}
