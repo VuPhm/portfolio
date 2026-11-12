@@ -34,4 +34,6 @@ config/r2.config.local.json
 *.m4v
 *.mkv
 *.avi
+__pycache__/
+*.pyc
 

@@ -28,16 +28,16 @@ const { cta } = siteConfig.personality;
 <section class="seq-hero-track" id="hero-track" aria-label="Giới thiệu VUPHM">
   <div class="seq-sticky-stage">
     <!-- Active Scrubbed Canvas -->
-    <canvas id="seq-hero-canvas" class="seq-canvas" width="1440" height="810"></canvas>
+    <canvas id="seq-hero-canvas" class="seq-canvas" width="1920" height="1080"></canvas>
 
     <!-- Initial LCP Poster & Reduced Motion Fallback -->
     <picture class="seq-poster-fallback" id="seq-poster">
-      <source media="(max-width: 767px)" srcset="/hero-sequence/mobile/poster.webp" width="720" height="1280" />
+      <source media="(max-width: 767px)" srcset="/hero-sequence/mobile/poster.webp" width="900" height="1600" />
       <img
         src="/hero-sequence/desktop/poster.webp"
         alt={`${headline} — ${headlineAccent}`}
-        width="1440"
-        height="810"
+        width="1920"
+        height="1080"
         fetchpriority="high"
         decoding="async"
       />
@@ -109,12 +109,14 @@ const { cta } = siteConfig.personality;
 
     const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
 
     // Detect Device Configuration
     let isMobile = window.innerWidth < 768;
     let frameCount = isMobile ? 40 : 60;
-    let canvasW = isMobile ? 720 : 1440;
-    let canvasH = isMobile ? 1280 : 810;
+    let canvasW = isMobile ? 900 : 1920;
+    let canvasH = isMobile ? 1600 : 1080;
     let basePath = isMobile ? '/hero-sequence/mobile/' : '/hero-sequence/desktop/';
 
     canvas.width = canvasW;
@@ -248,11 +250,13 @@ const { cta } = siteConfig.personality;
       if (newMobile !== isMobile) {
         isMobile = newMobile;
         frameCount = isMobile ? 40 : 60;
-        canvasW = isMobile ? 720 : 1440;
-        canvasH = isMobile ? 1280 : 810;
+        canvasW = isMobile ? 900 : 1920;
+        canvasH = isMobile ? 1600 : 1080;
         basePath = isMobile ? '/hero-sequence/mobile/' : '/hero-sequence/desktop/';
         canvas.width = canvasW;
         canvas.height = canvasH;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         frames.length = 0;
         frames.length = frameCount;
         frames.fill(null);
