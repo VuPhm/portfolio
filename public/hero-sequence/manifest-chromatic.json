@@ -1,0 +1,19 @@
+{
+  "version": "1.2",
+  "variant": "chromatic",
+  "description": "VUPHM Cinematic Scroll-Scrubbed Hero (Round 04.10 Chromatic Dark)",
+  "desktop": {
+    "count": 60,
+    "width": 1920,
+    "height": 1080,
+    "pattern": "/hero-sequence/desktop-chromatic/frame_%03d.webp",
+    "poster": "/hero-sequence/desktop-chromatic/poster.webp"
+  },
+  "mobile": {
+    "count": 40,
+    "width": 900,
+    "height": 1600,
+    "pattern": "/hero-sequence/mobile/frame_%03d.webp",
+    "poster": "/hero-sequence/mobile/poster.webp"
+  }
+}

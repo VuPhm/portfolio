@@ -27,13 +27,14 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
 
 <BaseLayout
   title="VUPHM — Cinematic Scroll-Scrubbed Hero Preview"
-  preloadImage="/hero-sequence/desktop/poster.webp"
+  preloadImage="/hero-sequence/desktop-chromatic/poster.webp"
   noindex={true}
 >
   <!-- New Pre-rendered Cinematic Scroll-Scrubbed Hero -->
   <ScrollSequenceHero
     headline={siteConfig.name}
     headlineAccent={siteConfig.role}
+    defaultVariant="chromatic"
   />
 
   {

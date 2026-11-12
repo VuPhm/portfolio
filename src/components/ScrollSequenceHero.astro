@@ -15,17 +15,23 @@ import { siteConfig } from '../data/site';
 interface Props {
   headline?: string;
   headlineAccent?: string;
+  defaultVariant?: 'chromatic' | 'monochrome';
 }
 
 const {
   headline = siteConfig.name,
   headlineAccent = siteConfig.role,
+  defaultVariant = 'chromatic',
 } = Astro.props;
 
 const { cta } = siteConfig.personality;
+
+const initialDesktopPoster = defaultVariant === 'monochrome'
+  ? '/hero-sequence/desktop-monochrome/poster.webp'
+  : '/hero-sequence/desktop-chromatic/poster.webp';
 ---
 
-<section class="seq-hero-track" id="hero-track" aria-label="Giới thiệu VUPHM">
+<section class="seq-hero-track" id="hero-track" data-default-variant={defaultVariant} aria-label="Giới thiệu VUPHM">
   <div class="seq-sticky-stage">
     <!-- Active Scrubbed Canvas -->
     <canvas id="seq-hero-canvas" class="seq-canvas" width="1920" height="1080"></canvas>
@@ -34,7 +40,8 @@ const { cta } = siteConfig.personality;
     <picture class="seq-poster-fallback" id="seq-poster">
       <source media="(max-width: 767px)" srcset="/hero-sequence/mobile/poster.webp" width="900" height="1600" />
       <img
-        src="/hero-sequence/desktop/poster.webp"
+        id="seq-poster-img"
+        src={initialDesktopPoster}
         alt={`${headline} — ${headlineAccent}`}
         width="1920"
         height="1080"
@@ -126,6 +133,24 @@ const { cta } = siteConfig.personality;
     const mobileMode = urlParams.get('mobile') || 'static';
     const isMobileStatic = isMobile && mobileMode !== 'seq';
 
+    // Desktop Variant: 'chromatic' (default) or 'monochrome' via ?variant=monochrome | ?variant=chromatic
+    const defaultVar = track.dataset.defaultVariant || 'chromatic';
+    const paramVariant = urlParams.get('variant');
+    const desktopVariant = (paramVariant === 'monochrome' || (!paramVariant && defaultVar === 'monochrome'))
+      ? 'monochrome'
+      : 'chromatic';
+
+    // Synchronize initial poster image if variant was switched via URL param on desktop
+    const posterImg = document.getElementById('seq-poster-img');
+    if (!isMobile && posterImg) {
+      const activePoster = desktopVariant === 'monochrome'
+        ? '/hero-sequence/desktop-monochrome/poster.webp'
+        : '/hero-sequence/desktop-chromatic/poster.webp';
+      if (!posterImg.src.endsWith(activePoster)) {
+        posterImg.src = activePoster;
+      }
+    }
+
     if (isMobileStatic) {
       track.classList.add('is-mobile-static');
       if (canvas) canvas.style.display = 'none';
@@ -136,7 +161,9 @@ const { cta } = siteConfig.personality;
     let frameCount = isMobile ? 40 : 60;
     let canvasW = isMobile ? 900 : 1920;
     let canvasH = isMobile ? 1600 : 1080;
-    let basePath = isMobile ? '/hero-sequence/mobile/' : '/hero-sequence/desktop/';
+    let basePath = isMobile 
+      ? '/hero-sequence/mobile/' 
+      : (desktopVariant === 'monochrome' ? '/hero-sequence/desktop-monochrome/' : '/hero-sequence/desktop-chromatic/');
 
     canvas.width = canvasW;
     canvas.height = canvasH;
@@ -271,7 +298,9 @@ const { cta } = siteConfig.personality;
         frameCount = isMobile ? 40 : 60;
         canvasW = isMobile ? 900 : 1920;
         canvasH = isMobile ? 1600 : 1080;
-        basePath = isMobile ? '/hero-sequence/mobile/' : '/hero-sequence/desktop/';
+        basePath = isMobile 
+          ? '/hero-sequence/mobile/' 
+          : (desktopVariant === 'monochrome' ? '/hero-sequence/desktop-monochrome/' : '/hero-sequence/desktop-chromatic/');
         canvas.width = canvasW;
         canvas.height = canvasH;
         ctx.imageSmoothingEnabled = true;

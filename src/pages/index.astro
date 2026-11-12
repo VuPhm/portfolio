@@ -29,10 +29,11 @@ const realSocials = contact.socials.filter(isRealSocialLink);
 const hasPublishedWork = collections.length > 0 || videos.length > 0;
 ---
 
-<BaseLayout preloadImage="/hero-sequence/desktop/poster.webp">
+<BaseLayout preloadImage="/hero-sequence/desktop-chromatic/poster.webp">
   <ScrollSequenceHero
     headline={siteConfig.name}
     headlineAccent={siteConfig.role}
+    defaultVariant="chromatic"
   />
 
   {
