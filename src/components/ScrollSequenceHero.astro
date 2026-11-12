@@ -1,0 +1,508 @@
+---
+/**
+ * ScrollSequenceHero.astro — Round 04.2
+ * Pre-rendered Cinematic Frame Sequence Canvas Scrubbed Hero
+ *
+ * Architecture:
+ * - Single Canvas rendering offline-rendered 16:9 (Desktop 60 frames) or 9:16 (Mobile 40 frames) WebP sequence.
+ * - Native sticky scroll track with zero scroll-jacking, zero wheel interception.
+ * - Windowed neighborhood frame preloader with closest-frame fallback (zero blank flash).
+ * - Full HTML/CSS overlay for branding, roles, and CTA buttons.
+ * - Seamless Stage 3 exit into #collections gallery.
+ */
+import { siteConfig } from '../data/site';
+
+interface Props {
+  headline?: string;
+  headlineAccent?: string;
+}
+
+const {
+  headline = siteConfig.name,
+  headlineAccent = siteConfig.role,
+} = Astro.props;
+
+const { cta } = siteConfig.personality;
+---
+
+<section class="seq-hero-track" id="hero-track" aria-label="Giới thiệu VUPHM">
+  <div class="seq-sticky-stage">
+    <!-- Active Scrubbed Canvas -->
+    <canvas id="seq-hero-canvas" class="seq-canvas" width="1440" height="810"></canvas>
+
+    <!-- Initial LCP Poster & Reduced Motion Fallback -->
+    <picture class="seq-poster-fallback" id="seq-poster">
+      <source media="(max-width: 767px)" srcset="/hero-sequence/mobile/poster.webp" width="720" height="1280" />
+      <img
+        src="/hero-sequence/desktop/poster.webp"
+        alt={`${headline} — ${headlineAccent}`}
+        width="1440"
+        height="810"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+
+    <!-- Top Shading Gradient for Navigation Legibility -->
+    <div class="seq-top-shade" aria-hidden="true"></div>
+
+    <!-- HTML UI Overlay (Interactive & Responsive) -->
+    <div class="seq-overlay wrap">
+      <div class="seq-info-group">
+        <div class="seq-brand-block">
+          <h1 class="seq-headline">
+            <span class="line-name">{headline}</span>
+            {headlineAccent && <span class="line-role">{headlineAccent}</span>}
+          </h1>
+        </div>
+
+        <!-- Action CTAs directly below Role in the same group -->
+        <div class="seq-cta-group">
+          <a
+            class="hero-btn-primary"
+            href="#collections"
+            data-event="view_collection"
+            data-event-target="collections_section"
+            data-event-label={cta.heroPrimaryLabel}
+          >
+            <span>{cta.heroPrimaryLabel}</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
+          </a>
+          <a
+            class="hero-btn-secondary"
+            href="/#contact"
+            data-event="contact_click"
+            data-event-target="hero"
+          >
+            <span>{cta.heroSecondaryLabel}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scroll Cue Indicator at Bottom Center -->
+    <a href="#collections" class="seq-scroll-cue" aria-label="Cuộn xuống xem tác phẩm">
+      <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+      <span class="cue-hairline" aria-hidden="true"></span>
+    </a>
+  </div>
+</section>
+
+<script is:inline>
+  (() => {
+    const track = document.getElementById('hero-track');
+    const canvas = document.getElementById('seq-hero-canvas');
+    const poster = document.getElementById('seq-poster');
+    if (!track || !canvas) return;
+
+    // Accessibility & Data Saver Fallback
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const saveData = navigator.connection && navigator.connection.saveData;
+    if (reduceMotion || saveData) {
+      if (canvas) canvas.style.display = 'none';
+      return;
+    }
+
+    const ctx = canvas.getContext('2d', { alpha: false });
+    if (!ctx) return;
+
+    // Detect Device Configuration
+    let isMobile = window.innerWidth < 768;
+    let frameCount = isMobile ? 40 : 60;
+    let canvasW = isMobile ? 720 : 1440;
+    let canvasH = isMobile ? 1280 : 810;
+    let basePath = isMobile ? '/hero-sequence/mobile/' : '/hero-sequence/desktop/';
+
+    canvas.width = canvasW;
+    canvas.height = canvasH;
+
+    // Frame Buffer Cache
+    const frames = new Array(frameCount).fill(null);
+    let lastDrawnIndex = -1;
+    let targetIndex = 0;
+    let posterDismissed = false;
+
+    const getFrameUrl = (idx) => {
+      const padded = String(idx).padStart(3, '0');
+      return `${basePath}frame_${padded}.webp`;
+    };
+
+    // Preload a single frame on demand
+    const loadFrame = (idx) => {
+      if (idx < 0 || idx >= frameCount || frames[idx]) return;
+      const img = new Image();
+      img.decoding = 'async';
+      img.src = getFrameUrl(idx);
+      img.onload = () => {
+        frames[idx] = img;
+        // If this is the current target frame, request render immediately
+        if (targetIndex === idx && targetIndex !== lastDrawnIndex) {
+          drawCurrent();
+        }
+      };
+      frames[idx] = img;
+    };
+
+    // Neighborhood preloader: Loads window around current position
+    const preloadWindow = (centerIdx) => {
+      loadFrame(centerIdx);
+      const ahead = 7;
+      const behind = 2;
+      for (let i = 1; i <= ahead; i++) {
+        loadFrame(centerIdx + i);
+      }
+      for (let i = 1; i <= behind; i++) {
+        loadFrame(centerIdx - i);
+      }
+    };
+
+    // Find the closest loaded frame to prevent any blank/black flash
+    const getBestAvailableFrame = (idx) => {
+      if (frames[idx] && frames[idx].complete && frames[idx].naturalWidth > 0) {
+        return { frame: frames[idx], index: idx };
+      }
+      // Search outward
+      for (let offset = 1; offset < frameCount; offset++) {
+        const left = idx - offset;
+        const right = idx + offset;
+        if (left >= 0 && frames[left] && frames[left].complete && frames[left].naturalWidth > 0) {
+          return { frame: frames[left], index: left };
+        }
+        if (right < frameCount && frames[right] && frames[right].complete && frames[right].naturalWidth > 0) {
+          return { frame: frames[right], index: right };
+        }
+      }
+      return null;
+    };
+
+    const drawCurrent = () => {
+      const best = getBestAvailableFrame(targetIndex);
+      if (best) {
+        ctx.drawImage(best.frame, 0, 0, canvas.width, canvas.height);
+        lastDrawnIndex = best.index;
+        if (!posterDismissed && poster) {
+          posterDismissed = true;
+          poster.classList.add('is-ready');
+        }
+      }
+    };
+
+    // Initial Bootstrap
+    loadFrame(0);
+    preloadWindow(0);
+
+    // Progressive background loader for idle time
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(() => {
+        for (let i = 0; i < frameCount; i++) {
+          setTimeout(() => loadFrame(i), i * 35);
+        }
+      });
+    } else {
+      setTimeout(() => {
+        for (let i = 0; i < frameCount; i++) {
+          setTimeout(() => loadFrame(i), i * 40);
+        }
+      }, 500);
+    }
+
+    // Scroll Progress Calculation (Strictly scoped within #hero-track)
+    let ticking = false;
+    const updateScrollProgress = () => {
+      const rect = track.getBoundingClientRect();
+      const winH = window.innerHeight;
+      const scrollableDist = track.offsetHeight - winH;
+      if (scrollableDist <= 0) return;
+
+      // Progress p in [0, 1]
+      const scrolled = Math.max(0, -rect.top);
+      const p = Math.min(1.0, Math.max(0.0, scrolled / scrollableDist));
+
+      track.style.setProperty('--seq-p', p.toFixed(4));
+
+      const newTarget = Math.min(frameCount - 1, Math.max(0, Math.round(p * (frameCount - 1))));
+      if (newTarget !== targetIndex) {
+        targetIndex = newTarget;
+        preloadWindow(targetIndex);
+        drawCurrent();
+      }
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(() => {
+          ticking = false;
+          updateScrollProgress();
+        });
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', () => {
+      const newMobile = window.innerWidth < 768;
+      if (newMobile !== isMobile) {
+        isMobile = newMobile;
+        frameCount = isMobile ? 40 : 60;
+        canvasW = isMobile ? 720 : 1440;
+        canvasH = isMobile ? 1280 : 810;
+        basePath = isMobile ? '/hero-sequence/mobile/' : '/hero-sequence/desktop/';
+        canvas.width = canvasW;
+        canvas.height = canvasH;
+        frames.length = 0;
+        frames.length = frameCount;
+        frames.fill(null);
+        lastDrawnIndex = -1;
+        preloadWindow(targetIndex);
+      }
+      onScroll();
+    }, { passive: true });
+
+    // Initial sync
+    updateScrollProgress();
+    setTimeout(drawCurrent, 80);
+  })();
+</script>
+
+<style>
+  /* Sticky Scroll Track: Provides natural scroll distance for scrubbing */
+  .seq-hero-track {
+    --seq-p: 0;
+    position: relative;
+    height: 155vh; /* Seamless flow directly into #collections */
+    background: #06070a;
+  }
+
+  @media (max-width: 767px) {
+    .seq-hero-track {
+      height: 145vh; /* Responsive mobile scrub distance */
+    }
+  }
+
+  /* Sticky Viewport Stage: Pinned 100svh while scrolling through track */
+  .seq-sticky-stage {
+    position: sticky;
+    top: 0;
+    width: 100%;
+    height: 100svh;
+    overflow: hidden;
+    background: #06070a;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Canvas Surface: GPU-composited single surface */
+  .seq-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    pointer-events: none;
+    z-index: 1;
+    transform: translateZ(0);
+    will-change: transform;
+  }
+
+  /* Initial Poster Fallback (Zero LCP delay) */
+  .seq-poster-fallback {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+
+  .seq-poster-fallback.is-ready {
+    opacity: 0;
+  }
+
+  .seq-poster-fallback img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Top Shading Gradient */
+  .seq-top-shade {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 140px;
+    background: linear-gradient(to bottom, rgb(6 7 10 / 0.72) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  /* HTML Interactive Overlay */
+  .seq-overlay {
+    position: relative;
+    z-index: 4;
+    width: 100%;
+    padding-top: calc(var(--nav-h) + 24px);
+    padding-bottom: 56px;
+    display: flex;
+    align-items: center;
+    pointer-events: none; /* Let background handle non-button touches */
+  }
+
+  .seq-info-group {
+    max-width: 580px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    pointer-events: auto;
+    transform-origin: left top;
+    /* Gentle compacting upwards as depicted in storyboard Stage 2 & 3 */
+    transform: translate3d(0, calc(var(--seq-p) * -85px), 0) scale(calc(1 - var(--seq-p) * 0.16));
+    opacity: calc(1 - var(--seq-p) * 0.32);
+    transition: transform 0.05s linear, opacity 0.05s linear;
+  }
+
+  /* Headline & Role Typography */
+  .seq-headline {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .line-name {
+    font-size: var(--fs-hero);
+    font-weight: 600;
+    line-height: 0.94;
+    letter-spacing: var(--tracking-tight);
+    color: #fff;
+    text-shadow: 0 2px 28px rgb(0 0 0 / 0.5);
+  }
+
+  .line-role {
+    font-size: clamp(1.6rem, 2.8vw, 3rem);
+    font-weight: 300;
+    letter-spacing: -0.018em;
+    color: rgb(220 230 245 / 0.74);
+    margin-top: 4px;
+  }
+
+  /* CTA Buttons (Grouped directly below Role on the left) */
+  .seq-cta-group {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* Scroll Indicator at Bottom Center */
+  .seq-scroll-cue {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    color: rgb(220 230 245 / 0.4);
+    text-decoration: none;
+    transition: color var(--dur-fast) ease;
+    opacity: calc(1 - var(--seq-p) * 4);
+    pointer-events: auto;
+  }
+
+  .seq-scroll-cue:hover {
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  .chevron-icon {
+    width: 20px;
+    height: 20px;
+    animation: cue-bob 2.4s ease-in-out infinite;
+  }
+
+  .cue-hairline {
+    width: 1px;
+    height: 16px;
+    background: linear-gradient(to bottom, currentColor, transparent);
+  }
+
+  @keyframes cue-bob {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(4px);
+    }
+  }
+
+  /* Dedicated Mobile Layout (390×844, 360×780) */
+  @media (max-width: 767px) {
+    .seq-sticky-stage {
+      align-items: flex-end; /* Mobile: content rests naturally in lower half */
+    }
+    .seq-overlay {
+      padding-top: calc(var(--nav-h) + 16px);
+      padding-bottom: 56px;
+    }
+    .seq-info-group {
+      max-width: 100%;
+      gap: 20px;
+      transform-origin: bottom left;
+      /* Fades smoothly before gallery rises into the lower viewport */
+      transform: translate3d(0, calc(var(--seq-p) * -24px), 0);
+      opacity: calc(1 - var(--seq-p) * 2.2);
+    }
+    .line-name {
+      font-size: clamp(2.8rem, 11vw, 3.8rem);
+    }
+    .line-role {
+      font-size: clamp(1.35rem, 5.2vw, 1.75rem);
+    }
+    .seq-cta-group {
+      width: 100%;
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 10px;
+    }
+    .hero-btn-primary,
+    .hero-btn-secondary {
+      flex: 0 0 auto;
+      white-space: nowrap;
+      justify-content: center;
+      text-align: center;
+      padding: 0 16px;
+      font-size: 0.8125rem;
+      min-height: 42px;
+    }
+    .seq-scroll-cue {
+      bottom: 14px;
+    }
+  }
+
+  /* Reduced Motion Static Fallback */
+  @media (prefers-reduced-motion: reduce) {
+    .seq-hero-track {
+      height: 100svh !important;
+    }
+    .seq-info-group,
+    .seq-scroll-cue {
+      transform: none !important;
+      opacity: 1 !important;
+      animation: none !important;
+    }
+    .seq-scroll-cue {
+      display: none;
+    }
+    .seq-poster-fallback {
+      opacity: 1 !important;
+    }
+    .seq-canvas {
+      display: none !important;
+    }
+  }
+</style>

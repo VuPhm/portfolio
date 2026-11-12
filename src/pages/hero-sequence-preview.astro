@@ -1,0 +1,155 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ScrollSequenceHero from '../components/ScrollSequenceHero.astro';
+import CollectionCard from '../components/CollectionCard.astro';
+import EditorialVideoGrid from '../components/EditorialVideoGrid.astro';
+import EmptyState from '../components/EmptyState.astro';
+import { siteConfig } from '../data/site';
+import {
+  getCollections,
+  getVideos,
+  selectedVideos,
+  summarize,
+} from '../lib/content';
+
+const [collections, videos] = await Promise.all([getCollections(), getVideos()]);
+const { personality } = siteConfig;
+
+const featuredCollections = collections.filter((c) => c.data.featured);
+const shownCollections = (featuredCollections.length ? featuredCollections : collections)
+  .slice(0, 5)
+  .map((c) => summarize(c, videos));
+
+const candidatePicks = selectedVideos(videos);
+const picks = (candidatePicks.length > 0 ? candidatePicks : videos).slice(0, 6);
+const hasPublishedWork = collections.length > 0 || videos.length > 0;
+---
+
+<BaseLayout
+  title="VUPHM — Cinematic Scroll-Scrubbed Hero Preview"
+  preloadImage="/hero-sequence/desktop/poster.webp"
+  noindex={true}
+>
+  <!-- New Pre-rendered Cinematic Scroll-Scrubbed Hero -->
+  <ScrollSequenceHero
+    headline={siteConfig.name}
+    headlineAccent={siteConfig.role}
+  />
+
+  {
+    shownCollections.length > 0 ? (
+      <section class="section section-collections" id="collections" aria-labelledby="collections-title">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="section-intro">
+              {personality.collections.eyebrow && (
+                <p class="eyebrow">{personality.collections.eyebrow}</p>
+              )}
+              <h2 class="section-title" id="collections-title">
+                {personality.collections.headline}
+              </h2>
+              {personality.collections.subline && (
+                <p class="section-subline">{personality.collections.subline}</p>
+              )}
+            </div>
+            <a class="link-more" href="/works">
+              {personality.cta.viewAllCollections}
+            </a>
+          </div>
+
+          <ul class="collection-grid" role="list">
+            {shownCollections.map((summary, i) => (
+              <li class:list={['reveal', { wide: i === 0 && shownCollections.length % 2 === 1 }]}>
+                <CollectionCard
+                  summary={summary}
+                  size={i === 0 && shownCollections.length % 2 === 1 ? 'wide' : 'default'}
+                />
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    ) : (
+      !hasPublishedWork && (
+        <section class="section" id="collections" aria-labelledby="collections-title">
+          <div class="wrap">
+            <div class="section-head reveal">
+              <div class="section-intro">
+                {personality.collections.eyebrow && (
+                  <p class="eyebrow">{personality.collections.eyebrow}</p>
+                )}
+                <h2 class="section-title" id="collections-title">
+                  {personality.collections.headline}
+                </h2>
+                {personality.collections.subline && (
+                  <p class="section-subline">{personality.collections.subline}</p>
+                )}
+              </div>
+            </div>
+            <EmptyState />
+          </div>
+        </section>
+      )
+    )
+  }
+
+  {
+    picks.length > 0 && (
+      <section class="section" id="videos" aria-labelledby="videos-title">
+        <div class="wrap">
+          <div class="section-head reveal">
+            <div class="section-intro">
+              {personality.selectedVideos.eyebrow && (
+                <p class="eyebrow">{personality.selectedVideos.eyebrow}</p>
+              )}
+              <h2 class="section-title" id="videos-title">
+                {personality.selectedVideos.headline}
+              </h2>
+              {personality.selectedVideos.subline && (
+                <p class="section-subline">{personality.selectedVideos.subline}</p>
+              )}
+            </div>
+          </div>
+          <EditorialVideoGrid videos={picks} group="selected" defaultPattern="asymmetric" />
+        </div>
+      </section>
+    )
+  }
+</BaseLayout>
+
+<style>
+  .section-collections {
+    position: relative;
+    z-index: 10;
+    margin-top: -48vh;
+    padding-top: clamp(24px, 4vw, 48px);
+  }
+
+  @media (max-width: 767px) {
+    .section-collections {
+      margin-top: -40vh;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .section-collections {
+      margin-top: 0 !important;
+    }
+  }
+
+  .collection-grid {
+    display: grid;
+    gap: var(--gap);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  @media (min-width: 734px) {
+    .collection-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .collection-grid .wide {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

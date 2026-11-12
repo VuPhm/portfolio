@@ -1,0 +1,18 @@
+{
+  "version": "1.0",
+  "description": "VUPHM Cinematic Scroll-Scrubbed Hero Frame Sequence",
+  "desktop": {
+    "count": 60,
+    "width": 1440,
+    "height": 810,
+    "pattern": "/hero-sequence/desktop/frame_%03d.webp",
+    "poster": "/hero-sequence/desktop/poster.webp"
+  },
+  "mobile": {
+    "count": 40,
+    "width": 720,
+    "height": 1280,
+    "pattern": "/hero-sequence/mobile/frame_%03d.webp",
+    "poster": "/hero-sequence/mobile/poster.webp"
+  }
+}

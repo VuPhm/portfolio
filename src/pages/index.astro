@@ -1,6 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import CinematicStage from '../components/CinematicStage.astro';
+import ScrollSequenceHero from '../components/ScrollSequenceHero.astro';
 import CollectionCard from '../components/CollectionCard.astro';
 import EditorialVideoGrid from '../components/EditorialVideoGrid.astro';
 import EmptyState from '../components/EmptyState.astro';
@@ -16,10 +16,6 @@ import {
 const [collections, videos] = await Promise.all([getCollections(), getVideos()]);
 
 const { personality, identity, introduction, experience, software, contact } = siteConfig;
-const heroVideo =
-  videos.find((v) => v.id === personality.hero.videoSlug) ??
-  videos.find((v) => v.data.featured) ??
-  videos[0];
 
 const featuredCollections = collections.filter((c) => c.data.featured);
 const shownCollections = (featuredCollections.length ? featuredCollections : collections)
@@ -33,12 +29,10 @@ const realSocials = contact.socials.filter(isRealSocialLink);
 const hasPublishedWork = collections.length > 0 || videos.length > 0;
 ---
 
-<BaseLayout preloadImage="/hero/hero-portrait-b-desktop.webp">
-  <CinematicStage
-    video={heroVideo}
+<BaseLayout preloadImage="/hero-sequence/desktop/poster.webp">
+  <ScrollSequenceHero
     headline={siteConfig.name}
     headlineAccent={siteConfig.role}
-    variant="portrait-b"
   />
 
   {
@@ -286,7 +280,22 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
 
 <style>
   .section-collections {
-    padding-top: clamp(40px, 5.5vw, 76px);
+    position: relative;
+    z-index: 10;
+    margin-top: -48vh;
+    padding-top: clamp(24px, 4vw, 48px);
+  }
+
+  @media (max-width: 767px) {
+    .section-collections {
+      margin-top: -40vh;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .section-collections {
+      margin-top: 0 !important;
+    }
   }
 
   .collection-grid {
