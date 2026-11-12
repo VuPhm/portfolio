@@ -79,11 +79,17 @@ const { cta } = siteConfig.personality;
             <span>{cta.heroSecondaryLabel}</span>
           </a>
         </div>
+        <!-- Mobile Scroll Indicator (Right below CTAs for cohesive visual rhythm) -->
+        <a href="#collections" class="seq-scroll-cue mobile-cue" aria-label="Cuộn xuống xem tác phẩm">
+          <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </a>
       </div>
     </div>
 
-    <!-- Scroll Cue Indicator at Bottom Center -->
-    <a href="#collections" class="seq-scroll-cue" aria-label="Cuộn xuống xem tác phẩm">
+    <!-- Desktop Scroll Cue Indicator at Bottom Center -->
+    <a href="#collections" class="seq-scroll-cue desktop-cue" aria-label="Cuộn xuống xem tác phẩm">
       <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="m6 9 6 6 6-6" />
       </svg>
@@ -114,6 +120,19 @@ const { cta } = siteConfig.personality;
 
     // Detect Device Configuration
     let isMobile = window.innerWidth < 768;
+
+    // Check Mobile Runtime Mode: Option B (static) by default, or Option A (seq) via ?mobile=seq
+    const urlParams = new URLSearchParams(window.location.search);
+    const mobileMode = urlParams.get('mobile') || 'static';
+    const isMobileStatic = isMobile && mobileMode !== 'seq';
+
+    if (isMobileStatic) {
+      track.classList.add('is-mobile-static');
+      if (canvas) canvas.style.display = 'none';
+      if (poster) poster.classList.add('is-ready');
+      return;
+    }
+
     let frameCount = isMobile ? 40 : 60;
     let canvasW = isMobile ? 900 : 1920;
     let canvasH = isMobile ? 1600 : 1080;
@@ -444,34 +463,98 @@ const { cta } = siteConfig.personality;
     }
   }
 
-  /* Dedicated Mobile Layout (390×844, 360×780) */
+  /* Desktop Cue vs Mobile Cue */
+  .mobile-cue {
+    display: none;
+  }
+  .desktop-cue {
+    display: flex;
+  }
+
+  /* Dedicated Mobile Layout (390×844, 360×780, 375×812) — Round 04.9 Recovery */
   @media (max-width: 767px) {
+    .desktop-cue {
+      display: none !important;
+    }
+
+    /* Option B Static Hero on Mobile */
+    .seq-hero-track.is-mobile-static {
+      height: 100svh !important;
+    }
+    .seq-hero-track.is-mobile-static .seq-sticky-stage {
+      position: relative !important;
+      height: 100svh !important;
+    }
+    .seq-hero-track.is-mobile-static .seq-poster-fallback {
+      opacity: 1 !important;
+    }
+    .seq-hero-track.is-mobile-static .seq-canvas {
+      display: none !important;
+    }
+
+    /* Option A Sequence Hero on Mobile */
+    .seq-hero-track:not(.is-mobile-static) {
+      height: 145vh;
+    }
+
+    /* Mobile Layout & Composition */
     .seq-sticky-stage {
-      align-items: flex-end; /* Mobile: content rests naturally in lower half */
+      align-items: stretch;
+      justify-content: flex-start;
     }
     .seq-overlay {
+      height: 100%;
       padding-top: calc(var(--nav-h) + 16px);
-      padding-bottom: 56px;
+      padding-bottom: clamp(48px, 9vh, 80px);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-start;
     }
     .seq-info-group {
       max-width: 100%;
-      gap: 20px;
+      gap: 12px;
       transform-origin: bottom left;
-      /* Fades smoothly before gallery rises into the lower viewport */
+      /* On sequence mode, gentle translation and fade */
       transform: translate3d(0, calc(var(--seq-p) * -24px), 0);
-      opacity: calc(1 - var(--seq-p) * 2.2);
+      opacity: calc(1 - var(--seq-p) * 2.0);
+    }
+    .seq-hero-track.is-mobile-static .seq-info-group {
+      transform: none !important;
+      opacity: 1 !important;
     }
     .line-name {
-      font-size: clamp(2.8rem, 11vw, 3.8rem);
+      font-size: clamp(2.4rem, 9.5vw, 3.2rem);
+      line-height: 1.0;
+      letter-spacing: -0.025em;
     }
     .line-role {
-      font-size: clamp(1.35rem, 5.2vw, 1.75rem);
+      font-size: clamp(1.15rem, 4.4vw, 1.45rem);
+      color: rgb(220 230 245 / 0.72);
+      margin-top: 2px;
     }
     .seq-cta-group {
       width: 100%;
       display: flex;
       flex-wrap: nowrap;
       gap: 10px;
+      margin-top: 4px;
+    }
+    .mobile-cue {
+      position: relative !important;
+      bottom: auto !important;
+      left: auto !important;
+      transform: none !important;
+      display: inline-flex !important;
+      align-items: center;
+      gap: 4px;
+      color: rgb(220 230 245 / 0.5);
+      text-decoration: none;
+      margin-top: clamp(14px, 2.5vh, 20px);
+      transition: color var(--dur-fast) ease;
+    }
+    .mobile-cue:hover {
+      color: rgb(255 255 255 / 0.85);
     }
     .hero-btn-primary,
     .hero-btn-secondary {
@@ -482,9 +565,6 @@ const { cta } = siteConfig.personality;
       padding: 0 16px;
       font-size: 0.8125rem;
       min-height: 42px;
-    }
-    .seq-scroll-cue {
-      bottom: 14px;
     }
   }
 

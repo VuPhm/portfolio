@@ -290,6 +290,11 @@ const hasPublishedWork = collections.length > 0 || videos.length > 0;
     .section-collections {
       margin-top: -40vh;
     }
+    :global(.is-mobile-static) + .section-collections,
+    :global(.is-mobile-static) ~ .section-collections {
+      margin-top: 0 !important;
+      padding-top: clamp(24px, 6vw, 40px);
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
